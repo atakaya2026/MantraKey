@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<!-- 자동 생성 파일 (mr) — tools/build_langs.py. 직접 고치지 말고 루트의 mobile_demo.html 또는 i18n/mr.json을 고친 뒤 다시 빌드할 것. -->
+<html lang="mr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../keyboard.css">
+<style>
+  #editor-wrap { position: relative; flex: 1; min-height: 0; }
+  #editor {
+    position: absolute; inset: 0; width: 100%; background: #faf7f2;
+    padding: 16px 20px; font-size: 30px; line-height: 1.9;
+    border: none; outline: none; overflow-y: auto;
+    white-space: pre-wrap; color: #1a1208; overflow-wrap: break-word;
+  }
+</style>
+</head>
+<body>
+<div id="phone-wrap">
+<div id="action-bar">
+  <span class="title">मंत्रकी</span>
+  <button class="action-btn reset" onclick="resetAll()">↺ रीसेट</button>
+</div>
+<div id="editor-wrap">
+  <div id="editor"></div>
+</div>
+<div id="tutorial-topbar">
+  <img id="tutorial-topbar-image" src="../images/tutorial.png" alt="" draggable="false" />
+  <div id="tutorial-progress">
+    <span class="seg"></span><span class="seg"></span><span class="seg"></span><span class="seg"></span><span class="seg"></span>
+  </div>
+  <div id="tutorial-demo-box"><span id="tutorial-demo-text"></span><span class="cursor">▏</span></div>
+  <button id="tutorial-back-btn" aria-label="Back"></button>
+  <div id="tutorial-banner"><div id="tutorial-text"></div></div>
+</div>
+<div id="keyboard-wrap">
+  <img id="kbd-image" src="../images/mr/keyboard.png" alt="keyboard" draggable="false" />
+  <div id="kbd"></div>
+  <div id="key-bubble"></div>
+  <div id="longpress-toast"></div>
+  <div id="fav-overlay">
+    <img id="fav-image" src="../images/fav.png" alt="favorites" draggable="false" />
+    <div id="fav-slots"></div>
+  </div>
+  <div id="tutorial-layer">
+    <div id="tutorial-zone-arrow" class="hidden">
+      <img id="tutorial-swipe-bg-arrow" src="../images/swipe.png" alt="" draggable="false" />
+      <div id="tutorial-thumb-wrap">
+        <img id="tutorial-thumb-img" src="../images/r-thumb.png" alt="" draggable="false" />
+      </div>
+    </div>
+    <div id="tutorial-key-arrow" class="hidden"><span class="tip"></span></div>
+  </div>
+</div>
+<div id="tutorial-intro-overlay">
+  <div id="tutorial-intro-card">
+    <div id="tutorial-intro-title">मंत्रकी</div>
+    <div id="tutorial-intro-text"></div>
+    <button id="tutorial-start-btn">सुरू करा</button>
+  </div>
+</div>
+</div>
+
+<script src="../layouts/mr.js"></script>
+<script src="../layouts/common.js"></script>
+<script src="keyboard.js"></script>
+<script src="tutorial.js"></script>
+<script>
+// 상용구 편집 화면(fav_edit.html)으로 넘어갔다가 취소/저장 후 돌아오면, 페이지가
+// 처음부터 다시 로드되므로 편집 직전에 쓰고 있던 문장과 자판 모드가 그냥 날아간다.
+// 떠나기 직전 상태를 세션에 스냅샷으로 남겨뒀다가, 돌아왔을 때 그 스냅샷이 있으면
+// (도움말을 다시 띄우는 등의) 첫 실행 절차 대신 그 상태를 그대로 복원한다.
+const RESUME_KEY = 'mantrakey_resume_state';
+
+function onBeforeOpenFavoriteEditor() {
+  const snapshot = {
+    text: getText(),
+    state,
+    numericMode, baseModeIsEnglish,
+  };
+  sessionStorage.setItem(RESUME_KEY, JSON.stringify(snapshot));
+}
+
+function restoreResumeState() {
+  const raw = sessionStorage.getItem(RESUME_KEY);
+  if (!raw) return false;
+  sessionStorage.removeItem(RESUME_KEY);
+  let snap;
+  try { snap = JSON.parse(raw); } catch (e) { return false; }
+  setText(snap.text || '');
+  Object.assign(state, snap.state || {});
+  numericMode = !!snap.numericMode;
+  baseModeIsEnglish = !!snap.baseModeIsEnglish;
+  updateKbdImage();
+  render();
+  return true;
+}
+
+if (!restoreResumeState()) {
+  setText('');
+  render();
+  startTutorial();
+}
+</script>
+</body>
+</html>

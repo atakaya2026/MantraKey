@@ -1,0 +1,381 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  height: 100%; background: #6b7280;
+  font-family: 'Noto Sans Devanagari', sans-serif;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+#phone-wrap {
+  width: min(100%, 480px);
+  height: 100%;
+  max-height: 900px;
+  display: flex;
+  flex-direction: column;
+  background: #e8e4dc;
+  box-shadow: 0 -5px 40px rgba(0,0,0,0.5);
+  border-radius: 12px 12px 0 0;
+  position: relative;
+  overflow: hidden;
+}
+#action-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px; background: #1a3a2a; border-bottom: 2px solid #4caf80;
+}
+#action-bar .title { color: #4caf80; font-size: 15px; font-weight: bold; letter-spacing: 1px; }
+.action-btn { padding: 5px 12px; border-radius: 6px; border: none; font-size: 12px; font-weight: 700; cursor: pointer; }
+.action-btn.reset { background: #6b7280; color: #fff; }
+/* 튜토리얼이 진행되는 동안은 이 기본 액션바 대신 #tutorial-topbar가 그 자리를 차지한다 */
+#action-bar.tutorial-hidden { display: none; }
+
+.cursor { color: #4caf80; animation: blink 1s step-end infinite; font-weight: 100; }
+@keyframes blink { from, to { opacity: 0; } 50% { opacity: 1; } }
+
+/* 아직 확정되지 않은 맨 끝 공란 자리 표시자 — 실제 InputConnection의 조합 중(composing)
+   텍스트처럼 밑줄로 "여기 아직 확정 안 됐다(독립모음이 뒤따르면 대체될 수 있다)"는 상태를
+   알린다. 커서와 달리 깜빡이지 않는다 — 실제 조합 텍스트 밑줄도 정적이라 깜빡이는 건 커서뿐. */
+.pending-space-underline { border-bottom: 2px solid #9a9488; }
+
+#keyboard-wrap {
+  position: relative;
+  width: 100%;
+  flex-shrink: 0;
+  border-top: 1px solid #888;
+  background: #b5b0a8;
+  touch-action: none; /* 브라우저 기본 핀치줌/패닝을 막고 제스처를 JS가 전담 처리 */
+  cursor: ns-resize; /* PC에서 마우스로도 상하 스와이프(드래그)가 가능함을 알림 */
+  /* 오래 누르기(길게 터치)를 해도 이미지 저장/복사 콜아웃이나 텍스트 선택이 절대
+     뜨지 않도록 이 영역 전체를 막는다 — contextmenu 자체는 keyboard.js가 막는다. */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+#kbd-image { display: block; width: 100%; height: auto; user-select: none; -webkit-user-drag: none; -webkit-touch-callout: none; }
+#kbd { position: absolute; top: 0; left: 0; right: 0; bottom: 0; touch-action: none; }
+
+/* 눌린 키 위에 뜨는 말풍선: 그 키의 대표 문자(들)를 손가락에 가리지 않게 보여준다. */
+#key-bubble {
+  position: absolute; z-index: 32; left: 0; top: 0;
+  pointer-events: none;
+  background: #faf7f2; color: #1a1208;
+  border-radius: 10px; padding: 3% 5%;
+  font-family: 'Noto Sans Devanagari', sans-serif; font-weight: 700;
+  font-size: clamp(15px, 5.6vw, 24px);
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+  opacity: 0; transform: translate(-50%, calc(-100% - 8px)) scale(0.85);
+  transition: opacity 0.08s ease, transform 0.08s ease;
+}
+#key-bubble.show { opacity: 1; transform: translate(-50%, calc(-100% - 8px)) scale(1); }
+#key-bubble::after {
+  content: ''; position: absolute; left: 50%; bottom: -6px; transform: translateX(-50%);
+  border-left: 7px solid transparent; border-right: 7px solid transparent;
+  border-top: 7px solid #faf7f2;
+}
+
+.kbd-btn {
+  position: absolute;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  touch-action: none;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Noto Sans Devanagari', sans-serif;
+  font-weight: bold;
+  padding: 0;
+}
+.kbd-btn:active { opacity: 0.5; }
+
+/* 자음키/백스페이스/123/스페이스/엔터: 이미지에 이미 라벨이 그려져 있어 텍스트 없음 */
+.kbd-cons, .kbd-bs, .kbd-123, .kbd-space, .kbd-enter { font-size: 0; }
+
+/* 영문 글자키의 투명 클릭 영역 — 표시는 별도 라벨(kbd-eng-letter)이 맡는다 */
+.kbd-eng-hit { font-size: 0; }
+
+/* 모음·부호키 + 다음키: 이미지가 공란이라 JS가 라벨을 그려 넣음 */
+.kbd-label {
+  flex-direction: row; flex-wrap: nowrap;
+  justify-content: center; align-items: center;
+  gap: 0 3px; line-height: 1;
+  color: #3a3a3a; font-weight: 700;
+  overflow: hidden;
+}
+.kbd-label .label-item { line-height: 1; white-space: nowrap; }
+/* 데바나가리 부호는 글자 칸 위쪽에 몰려 그려져서 키 중앙보다 위로 붙어 보인다 — 살짝 내린다 */
+.kbd-label[class*="key-"] .label-item { position: relative; top: 0.12em; }
+.kbd-label.count-1 .label-item,
+.kbd-label.count-2 .label-item { font-size: clamp(14px, 5.6vw, 26px); }
+.kbd-label.count-3 .label-item { font-size: clamp(11px, 4.3vw, 20px); }
+/* 독립모음 글자(ओ औ, 卐 卍 등)는 부호보다 폭이 넓어 두 글자면 키 밖으로 잘린다 */
+/* ं ँ / े ै / ु ू ृ 는 받침(NBSP) 폭이 좁아 부호끼리 맞닿아 보여서 간격을 살짝 준다 */
+.kbd-label.key-U:not(.independent) .label-item { padding: 0 0.1em; }
+.kbd-label.key-I:not(.independent) .label-item,
+.kbd-label.key-M:not(.independent) .label-item { padding: 0 0.07em; }
+/* ृ는 받침 자리 왼쪽으로 삐져나와 앞 글자(ू)에 붙어 보여서 따로 더 띄운다 */
+.kbd-label.key-M:not(.independent) .label-item.gap-l { padding-left: 0.2em; }
+/* े ै / ु ू ृ는 받침(NBSP) 기준 왼쪽으로 그려져 키 중앙보다 좌측으로 치우쳐 보인다 — 실측만큼 오른쪽으로 */
+.kbd-label.key-I:not(.independent) .label-item { left: 0.12em; }
+.kbd-label.key-M:not(.independent) .label-item { left: 0.11em; }
+.kbd-label.independent.count-2 .label-item { font-size: clamp(11px, 4.3vw, 20px); }
+.kbd-label.independent.count-3 .label-item { font-size: clamp(9px, 3.4vw, 16px); }
+.kbd-label.next-idle .label-item { color: #9a9488; font-weight: 900; transform: translateY(-0.28em); }
+
+/* 다음키(K): 자판에서 가장 중요한 키라 항상 더 크게 (최대 2글자만 표시되므로 여유 있음) */
+.kbd-label.kbd-next.count-1 .label-item,
+.kbd-label.kbd-next.count-2 .label-item { font-size: clamp(15px, 5.6vw, 25px); }
+.kbd-label.kbd-next.next-idle.count-1 .label-item { font-size: clamp(13px, 4.6vw, 20px); }
+.kbd-label.kbd-next { gap: 0 1px; }
+/* 배경 이미지의 다음키 화살표가 커지면서 가운데 정렬된 글자와 겹치게 돼, 화살표보다
+   위로 살짝 띄운다(next-idle은 기존 0.12em 보정과 합쳐 -0.28em). */
+.kbd-label.kbd-next .label-item { transform: translateY(-0.4em); }
+.kbd-label.independent .label-item { color: #404040; }
+.kbd-label.next-active { color: #00b0f0; }
+
+/* 영문 모드: 로마자 글자 라벨 */
+.kbd-label.kbd-eng-letter { color: #1a1208; font-weight: 700; }
+.kbd-label.kbd-eng-letter .label-item { font-size: clamp(15px, 5.6vw, 25px); }
+
+/* 시프트 키: 초록 점은 시프트락 표시등 전용 — 일시 대문자(once)는 키캡 자체가 이미
+   대문자로 바뀌어 보이므로 따로 켤 필요가 없다 */
+.kbd-shift { font-size: 0; }
+.kbd-shift .shift-dot {
+  position: absolute; top: 10%; right: 12%;
+  width: 16%; height: 16%; border-radius: 50%;
+  background: transparent; transition: background 0.15s;
+}
+.kbd-shift.locked .shift-dot { background: #22c55e; box-shadow: 0 0 6px rgba(34,197,94,0.9); }
+
+/* 숫자/기호 자판: 이미지에 라벨이 이미 그려져 있어 텍스트 없음 */
+.kbd-func { font-size: 0; }
+
+/* 스페이스바 라벨: 이미지가 공란이라 JS가 독립모음 모드 상태에 맞춰 그려 넣음 */
+.kbd-space-label {
+  position: absolute; pointer-events: none;
+  display: flex; align-items: center; justify-content: center;
+  gap: 0;
+}
+.kbd-space-label .sp-part { font-weight: 700; font-size: clamp(15px, 5.3vw, 25px); }
+.kbd-space-label .sp-part.dark { color: #1a1208; }
+.kbd-space-label .sp-part.gray { color: #9a9488; }
+
+/* 엔터키 라벨: 이미지엔 라벨을 안 그려 넣는다 — 실제 제품에서는 return/go/search/
+   send/done처럼 OS·입력 상황에 따라 바뀌는 값이라 항상 JS(런타임)가 그려야 하기
+   때문이다. 이 데모는 그 상황별 라벨 하나를 대표로 보여준다. */
+.kbd-enter-label {
+  position: absolute; pointer-events: none;
+  display: flex; align-items: center; justify-content: center;
+  color: #2b2620; font-weight: 700; font-size: clamp(13px, 4.2vw, 18px);
+}
+
+
+/* 힌디 하단바 마침표 키 라벨(이미지엔 공란): । → .. → . */
+.kbd-danda-label {
+  position: absolute; pointer-events: none;
+  display: flex; align-items: center; justify-content: center;
+  color: #3a3a3a; font-weight: 700; font-size: clamp(15px, 5.2vw, 24px);
+}
+
+/* 인트로: 첫 진입 시 뜨는 시작 카드. 첫 안내 문구 + 시작 버튼만 있는 단순한 모달. */
+#tutorial-intro-overlay {
+  position: absolute; inset: 0; z-index: 50;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  align-items: center; justify-content: center;
+  padding: 5%;
+}
+#tutorial-intro-overlay.show { display: flex; }
+#tutorial-intro-card {
+  background: #faf7f2; border-radius: 14px;
+  padding: 8% 6%; width: 100%;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  text-align: center;
+}
+#tutorial-intro-title { font-size: clamp(16px, 5.4vw, 21px); font-weight: 900; color: #4c7a3a; margin-bottom: 5%; letter-spacing: 1px; }
+/* 카드 자체(제목/버튼)는 가운데 정렬을 유지하되, 타자 효과가 도는 본문만 왼쪽 정렬로
+   덮어써서 글자가 늘어날 때 이미 찍힌 글자가 옆으로 밀리지 않게 한다. */
+#tutorial-intro-text { font-size: clamp(15px, 4.8vw, 20px); font-weight: 700; color: #1a1208; line-height: 1.5; margin-bottom: 7%; text-align: left; }
+#tutorial-start-btn {
+  padding: 2.6% 12%; border: none; border-radius: 10px;
+  background: #22c55e; color: #fff; font-weight: 700;
+  font-size: clamp(14px, 4.6vw, 19px); cursor: pointer;
+}
+
+/* 진행형 튜토리얼: 화살표(스와이프 존/키 안내)는 키보드 영역 위에 얹히는 레이어에
+   그대로 남아 있다. 진행바/문구/입력 미리보기는 tutorial.png 상단바(#tutorial-topbar)로
+   옮겨졌다. 키 입력/스크롤은 그대로 통과해야 하므로 pointer-events:none으로 둔다. */
+#tutorial-layer { position: absolute; inset: 0; z-index: 35; pointer-events: none; }
+
+@keyframes tut-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+/* 튜토리얼 진행 중에만 뜨는 상단바: tutorial.png(위쪽 밝은 안내 영역 + 아래쪽 어두운
+   문구 영역)를 배경 이미지로 쓰고, 그 위에 진행 점/입력 미리보기 상자/뒤로가기 버튼을
+   이미지 속 그 자리에 맞춰 겹쳐 그린다(퍼센트 좌표는 키보드 오버레이와 같은 방식).
+   튜토리얼이 끝나면 다시 기존 action-bar로 돌아간다. */
+#tutorial-topbar {
+  position: relative; width: 100%; flex-shrink: 0;
+  display: none;
+}
+#tutorial-topbar.show { display: block; }
+#tutorial-topbar-image { display: block; width: 100%; height: auto; user-select: none; -webkit-user-drag: none; }
+
+/* 진행 점 5개: 이미지에 이미 그려진 회색 점 위에 정확히 겹쳐서, 완료된 단계만 초록으로 덮는다 */
+#tutorial-progress { position: absolute; top: 33.86%; height: 9.06%; left: 0; right: 0; }
+#tutorial-progress .seg {
+  position: absolute; top: 0; height: 100%; width: 3.53%;
+  border-radius: 50%; background: transparent; transition: background 0.25s;
+}
+#tutorial-progress .seg.done { background: #22c55e; }
+#tutorial-progress .seg:nth-child(1) { left: 7.69%; }
+#tutorial-progress .seg:nth-child(2) { left: 12.66%; }
+#tutorial-progress .seg:nth-child(3) { left: 17.63%; }
+#tutorial-progress .seg:nth-child(4) { left: 22.60%; }
+#tutorial-progress .seg:nth-child(5) { left: 27.56%; }
+
+/* 입력 미리보기 상자: 흰 사각형은 이미지에 이미 그려져 있어 배경 없이 텍스트+커서만 얹는다.
+   조합 단계에서 지금까지 입력된 글자를 보여주고, 그 외 단계에서는 커서만 항상 깜빡인다. */
+#tutorial-demo-box {
+  position: absolute; left: 42.22%; top: 8.69%; width: 19.87%; height: 41.34%;
+  display: flex; align-items: center; justify-content: center; gap: 2%;
+  font-family: 'Noto Sans Devanagari', sans-serif; font-weight: 700; color: #1a1208;
+  font-size: clamp(28px, 11vw, 46px);
+  line-height: 1;
+  overflow: hidden;
+}
+#tutorial-demo-box .cursor { font-size: clamp(28px, 11vw, 46px); }
+/* #editor의 white-space:pre-wrap과 같은 이유 — 기본값(normal)이면 .pending-space-underline
+   안의 미확정 공란(공백 한 글자뿐인 텍스트 노드)이 폭 0으로 접혀버려 밑줄이 그려질 자리
+   자체가 없어진다(밑줄 span은 실제로 그려지는데 보이지 않던 원인). */
+#tutorial-demo-text { white-space: pre; }
+
+/* 뒤로가기 버튼: 이미지 속 화살표+"Back" 글자 위에 투명 버튼만 얹어 클릭 영역으로 쓴다 */
+#tutorial-back-btn {
+  position: absolute; left: 69.07%; top: 18.11%; width: 21.63%; height: 17.32%;
+  background: transparent; border: none; padding: 0; margin: 0; cursor: pointer;
+}
+
+/* 안내 문구: 이미지 아래쪽 어두운 영역 위에 얹는다(오답 시 이 영역이 흔들린다) */
+/* 왼쪽 정렬 + 세로만 중앙 정렬: 가운데 정렬이면 타자 효과로 글자가 늘어날 때마다
+   전체 줄이 다시 가운데로 재배치되면서 이미 찍힌 글자들까지 옆으로 밀려 보인다.
+   PC 튜토리얼(tutorial.html의 #board-text)과 같은 방식으로, 왼쪽 고정점에서
+   오른쪽으로만 늘어나게 한다. */
+#tutorial-banner {
+  position: absolute; left: 6%; right: 6%; top: 60.5%; bottom: 4%;
+  display: flex; align-items: center;
+  text-align: left;
+}
+#tutorial-banner.shake { animation: tut-shake 0.4s; }
+#tutorial-text { width: 100%; color: #f5f0e8; font-weight: 700; font-size: clamp(16px, 5.2vw, 22px); line-height: 1.4; }
+
+/* 스와이프 존 안내: 좌/중/우 1/3 구역 중 지금 안내 중인 구역 위로 옮겨져서, 스페이스바
+   보다 살짝 위에서 시작한 엄지가 위로 살짝 스치듯 지나가는 걸 한 번만 보여준다(반복 X).
+   같은 단계를 다시 보여줘야 할 때(오답 피드백 등)는 JS가 애니메이션을 처음부터 재생시킨다. */
+#tutorial-zone-arrow {
+  position: absolute; top: 0; bottom: 0;
+  transition: left 0.25s ease;
+}
+#tutorial-zone-arrow.hidden { display: none; }
+/* 엄지 밑에 깔리는 배경 화살표(swipe.png, 위로 갈수록 진해지는 파란 그라데이션).
+   위치는 안 움직이고 투명도만 변한다 — 엄지가 스와이프하는 동안 같이 나타나 있다가,
+   엄지가 사라지고 난 뒤에도 잠깐 남아 있다 천천히(슬그머니) 옅어져 사라진다.
+   thumb-wrap보다 먼저 마크업에 있어서(z-index 없이도) 항상 엄지 뒤에 깔린다. */
+#tutorial-swipe-bg-arrow {
+  position: absolute; left: 50%; top: 40%;
+  transform: translate(-50%, -50%);
+  width: clamp(28px, 9vw, 40px); height: auto;
+  opacity: 0;
+  pointer-events: none;
+}
+#tutorial-swipe-bg-arrow.play { animation: tut-arrow-bg-fade 6s ease-out; }
+@keyframes tut-arrow-bg-fade {
+  0%   { opacity: 1; }
+  15%  { opacity: 1; }
+  45%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+/* 그림 속 엄지는 판 전체(직사각형)를 채우고 있지만 실제로 화면에 닿는 부분(손톱 반대
+   쪽의 볼록한 지문 쪽)은 판의 정중앙이 아니라 한쪽으로 치우쳐 있어서, 판 자체를
+   50%로 맞추면 닿는 지점이 존 중앙에서 벗어나 보인다. 오른손 그림은 그 지점이 오른쪽에
+   있어 조금 더 오른쪽으로, 왼손 그림(좌우 반전)은 그 반대로 보정해준다. */
+#tutorial-thumb-wrap {
+  position: absolute; left: 50%; bottom: 22%;
+  transform: translateX(-50%);
+  opacity: 0;
+  filter: drop-shadow(0 2px 5px rgba(0,0,0,0.55));
+}
+#tutorial-thumb-wrap.shift-right { transform: translateX(-34%); }
+#tutorial-thumb-wrap.shift-left { transform: translateX(-66%); }
+#tutorial-thumb-wrap img { display: block; width: clamp(70px, 22vw, 104px); height: auto; }
+/* 시작 지점(스와이프 존 밑쪽)에서 파다닥 깜빡이듯 잠깐 나타나 "여기서 시작"을
+   암시한 다음(0~20%), 그대로 빠르게 위로 훅 스와이프하며 사라진다(20~100%).
+   깜빡이는 동안엔 transform을 건드리면 안 된다 — .shift-left/.shift-right가
+   그 속성으로 좌우 보정을 걸어놔서, bottom/opacity만으로 파다닥임을 표현한다. */
+#tutorial-thumb-wrap.play { animation: tut-thumb-sweep 0.34s linear; }
+@keyframes tut-thumb-sweep {
+  0%   { bottom: 28%; opacity: 1; }
+  13%   { bottom: 30%; opacity: 1; }
+  90%  { bottom: 90%; opacity: 1; }
+  100% { bottom: 100%; opacity: 0; }
+}
+
+/* 키 화살표: ख/ी 조합 단계에서 지금 눌러야 할 키 바로 위에서 아래를 가리키며 통통 튄다. */
+#tutorial-key-arrow {
+  position: absolute;
+  display: flex; align-items: flex-end; justify-content: center;
+  transition: left 0.25s ease, top 0.25s ease, width 0.25s ease;
+}
+#tutorial-key-arrow.hidden { display: none; }
+#tutorial-key-arrow .tip {
+  width: 0; height: 0;
+  border-left: 13px solid transparent;
+  border-right: 13px solid transparent;
+  border-top: 18px solid #22c55e;
+  filter: drop-shadow(0 0 6px rgba(34,197,94,0.9));
+  animation: tut-bounce 0.9s ease-in-out infinite;
+}
+@keyframes tut-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
+/* 롱프레스 안내 토스트: 자음키/부호키를 길게 누르면 그 위에 잠깐 떴다가 사라진다.
+   #kbd와 같은 %좌표계를 쓰는 keyboard-wrap 위에 얹어서 화면 크기와 무관하게 늘 같은
+   비율 위치에 뜨게 한다. */
+#longpress-toast {
+  position: absolute; left: 6%; right: 6%; top: 4%; z-index: 30;
+  pointer-events: none;
+  background: rgba(26,18,8,0.88); color: #fff;
+  border-radius: 10px; padding: 2.6% 4%;
+  font-family: 'Noto Sans Devanagari', sans-serif; font-weight: 700;
+  font-size: clamp(15px, 5vw, 21px); text-align: center;
+  opacity: 0; transform: translateY(-6px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+#longpress-toast.show { opacity: 1; transform: translateY(0); }
+
+/* 상용구(즐겨찾기) 패널: fav.png 한 장 위에 10개 문구 버튼 + 닫기/편집 버튼만 얹는다.
+   흰 칸엔 이미지에 글자가 없어 JS가 저장된 문구를 라벨로 그려 넣는다. */
+#fav-overlay { position: absolute; inset: 0; z-index: 40; display: none; }
+#fav-overlay.show { display: block; }
+#fav-image { display: block; width: 100%; height: 100%; user-select: none; -webkit-user-drag: none; }
+#fav-slots { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+.fav-slot {
+  position: absolute; border: none; background: transparent; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; padding: 0 6%;
+  -webkit-tap-highlight-color: transparent;
+}
+.fav-slot:active { opacity: 0.5; }
+.fav-slot span {
+  display: block; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-family: 'Noto Sans Devanagari', sans-serif; font-weight: 700; color: #1a1208;
+  font-size: clamp(12px, 3.6vw, 18px); text-align: center;
+}
+.fav-close, .fav-edit { font-size: 0; } /* 라벨은 이미지에 이미 그려져 있음 */

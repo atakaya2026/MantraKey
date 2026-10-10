@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="keyboard.css">
+<title>पसंदीदा वाक्यांश संपादित करें</title>
+<style>
+  #action-bar { justify-content: center; }
+
+  #list { flex: 1; overflow-y: auto; padding: 16px 18px; background: #faf7f2; -webkit-overflow-scrolling: touch; }
+  .fav-item { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .fav-num {
+    flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
+    background: #4caf80; color: #fff; font-weight: 700; font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .fav-field {
+    flex: 1; min-width: 0; font-size: 17px; line-height: 1.5;
+    padding: 10px 12px; border: 1.5px solid #cfcabf; border-radius: 8px;
+    background: #fff; color: #1a1208; cursor: text;
+    white-space: pre-wrap; overflow-wrap: break-word; min-height: 1.5em;
+  }
+  .fav-field.active { border-color: #4caf80; box-shadow: 0 0 0 2px rgba(76,175,128,0.25); }
+
+  #bottom-bar { display: flex; flex-shrink: 0; border-top: 1px solid #ccc; }
+  #bottom-bar button {
+    flex: 1; padding: 14px; font-size: 16px; font-weight: 700; border: none; cursor: pointer;
+    font-family: 'Noto Sans Devanagari', sans-serif;
+  }
+  #btn-cancel { background: #d9d5cc; color: #4a4438; }
+  #btn-save { background: #22c55e; color: #fff; }
+</style>
+</head>
+<body>
+<div id="phone-wrap">
+  <div id="action-bar"><span class="title">पसंदीदा वाक्यांश</span></div>
+  <div id="list"></div>
+  <div id="keyboard-wrap" style="display:none;">
+    <img id="kbd-image" src="images/keyboard.png" alt="keyboard" draggable="false" />
+    <div id="kbd"></div>
+    <div id="longpress-toast"></div>
+    <div id="fav-overlay">
+      <img id="fav-image" src="images/fav.png" alt="favorites" draggable="false" />
+      <div id="fav-slots"></div>
+    </div>
+  </div>
+  <div id="bottom-bar">
+    <button id="btn-cancel" onclick="cancelEdit()">रद्द करें</button>
+    <button id="btn-save" onclick="saveEdit()">सहेजें</button>
+  </div>
+</div>
+
+<script src="keyboard.js"></script>
+<script>
+// 편집 중인 10개 문구의 작업용 사본. 저장을 눌러야 비로소 localStorage(FAV_STORAGE_KEY)에 반영된다.
+let favTexts = loadFavorites();
+let activeFieldIndex = null;
+
+function fieldHtml(text, isActive) {
+  const esc = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return esc + (isActive ? '<span class="cursor">▏</span>' : '');
+}
+
+function renderFields() {
+  const list = document.getElementById('list');
+  list.innerHTML = '';
+  favTexts.forEach((text, i) => {
+    const row = document.createElement('div');
+    row.className = 'fav-item';
+
+    const num = document.createElement('div');
+    num.className = 'fav-num';
+    num.textContent = i + 1;
+
+    const field = document.createElement('div');
+    field.className = 'fav-field' + (activeFieldIndex === i ? ' active' : '');
+    field.id = 'fav-field-' + i;
+    field.innerHTML = fieldHtml(text, activeFieldIndex === i);
+    field.addEventListener('click', (e) => { e.stopPropagation(); activateField(i); });
+
+    row.appendChild(num);
+    row.appendChild(field);
+    list.appendChild(row);
+  });
+}
+
+// 칸을 탭하면 그 칸을 "커서가 있는 곳"으로 삼아 실측 자판을 그 위로 띄운다 —
+// 진짜 키보드 앱처럼, 이 데모의 자판도 자기 영역 밖(입력창)에는 직접 글자를
+// 그릴 수 없으니 getText/setText만 활성 칸으로 갈아 끼워서 연결한다.
+function activateField(i) {
+  // 이전에 활성 상태였던 칸은 클래스뿐 아니라 깜빡이던 커서 span도 지워서
+  // 확정된 텍스트만 남긴다(안 지우면 칸을 옮겨도 이전 칸에 커서가 계속 남아있게 된다).
+  if (activeFieldIndex !== null && activeFieldIndex !== i) {
+    const prevField = document.getElementById('fav-field-' + activeFieldIndex);
+    if (prevField) { prevField.classList.remove('active'); prevField.innerHTML = fieldHtml(favTexts[activeFieldIndex], false); }
+  }
+  activeFieldIndex = i;
+  KB_setEditorAdapter({
+    getText: () => favTexts[i],
+    setText: (t) => {
+      favTexts[i] = t;
+      const field = document.getElementById('fav-field-' + i);
+      if (field) field.innerHTML = fieldHtml(t, true);
+    },
+  });
+  const field = document.getElementById('fav-field-' + i);
+  if (field) { field.classList.add('active'); field.innerHTML = fieldHtml(favTexts[i], true); }
+  document.getElementById('keyboard-wrap').style.display = '';
+  render();
+}
+
+// 칸 바깥(제목표시줄, 리스트 여백)을 탭하면 자판을 접는다 — 실제 키보드의
+// "바깥을 탭하면 닫힌다"는 동작과 같다.
+function deactivateField() {
+  if (activeFieldIndex === null) return;
+  const field = document.getElementById('fav-field-' + activeFieldIndex);
+  if (field) field.innerHTML = fieldHtml(favTexts[activeFieldIndex], false);
+  activeFieldIndex = null;
+  document.getElementById('keyboard-wrap').style.display = 'none';
+}
+
+renderFields();
+document.getElementById('action-bar').addEventListener('click', deactivateField);
+document.getElementById('list').addEventListener('click', (e) => {
+  if (e.target.id === 'list') deactivateField();
+});
+
+function cancelEdit() {
+  location.href = 'mobile_demo.html';
+}
+
+function saveEdit() {
+  localStorage.setItem(FAV_STORAGE_KEY, JSON.stringify(favTexts));
+  location.href = 'mobile_demo.html';
+}
+</script>
+</body>
+</html>

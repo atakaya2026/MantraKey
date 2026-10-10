@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<!-- 자동 생성 파일 (mai) — tools/build_langs.py. 직접 고치지 말고 루트의 tutorial.html 또는 i18n/mai.json을 고친 뒤 다시 빌드할 것. -->
+<html lang="mai">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>मंत्रकी Tutorial</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    height: 100%; margin: 0;
+    font-family: 'Segoe UI', system-ui, -apple-system, Apple SD Gothic Neo, Noto Sans KR, Arial, sans-serif;
+    background: #dfeefc;
+  }
+
+  #homeBtn {
+    position: fixed; top: 20px; right: 24px; z-index: 10000;
+    padding: 10px 18px; font-size: 1.05em;
+    background-color: #3f6fb8; color: #fff;
+    border: none; border-radius: 8px; cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+
+  /* bg_tutorial.png(1972x1178)를 그대로 배경으로 쓰고, 그 위에 좌표(%)로 오버레이만 얹는다.
+     img가 width:100%/height:auto로 원본 비율을 유지하므로 #stage의 실제 렌더 크기가
+     달라져도 아래 %기반 오버레이들은 항상 이미지 위의 같은 자리를 가리킨다. */
+  #stage {
+    position: relative;
+    width: min(1100px, 96vw);
+    margin: clamp(10px, 3vh, 40px) auto 0;
+  }
+  #bg-img { display: block; width: 100%; height: auto; user-select: none; -webkit-user-drag: none; }
+
+  .ov { position: absolute; pointer-events: none; }
+
+  #progress-dots { left: 7.5%; top: 6%; display: flex; gap: 0.6%; }
+  #progress-dots .dot { width: 1.1%; aspect-ratio: 1/1; border-radius: 50%; background: rgba(0,0,0,0.18); transition: background .2s; }
+  #progress-dots .dot.done { background: #1b8a3c; }
+
+  #monitor-text {
+    left: 11.46%; top: 12.9%; width: 13.54%; height: 22.67%;
+    display: flex; align-items: center; justify-content: center;
+    color: #eaf3ff;
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    font-weight: 900;
+    font-size: clamp(26px, 3.9vw, 50px);
+    text-align: center;
+    word-break: break-word;
+    line-height: 1.2;
+  }
+  /* 커서는 글자 바로 뒤(오른쪽)에 붙어서 깜빡인다 — 박스 중앙에 따로 고정하는 게
+     아니라, "글자+커서"를 한 덩어리로 보고 그 덩어리 자체를 박스 중앙에 놓는다.
+     "▏"(U+258F) 글리프는 자기 칸의 왼쪽 끝에 붙어 그려지는 문자라 커서 자리가
+     이상하게 보였어서, 글자 대신 크기가 고정된 막대(div)를 직접 그린다. */
+  #monitor-text .cursor {
+    display: inline-block;
+    width: 0.07em; height: 0.78em;
+    margin-left: 0.06em;
+    background: #9fc7f5;
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink { from, to { opacity: 0; } 50% { opacity: 1; } }
+  .pending-space-dot { color: #6fa3d8; animation: none; }
+
+  #board-text-wrap {
+    left: 27%; top: 8%; width: 65.5%; height: 26%;
+    display: flex; align-items: center;
+  }
+  /* 내부는 일반 인라인 흐름이어야 <br>과 띄어쓰기가 정상적으로 동작한다
+     (부모를 flex로 만들면 글자별 span이 각각 flex item이 되어 개행/공백이 깨진다) */
+  #board-text {
+    width: 100%;
+    font-size: clamp(14px, 1.85vw, 21px);
+    line-height: 1.55;
+    color: #1c2733;
+    font-weight: 700;
+  }
+  /* 데바나가리 폰트는 같은 font-size라도 한글보다 작고 낮아 보여서, 강조해야 할
+     글자들이 오히려 눈에 덜 띄는 역효과가 난다 — 살짝 키워서 균형을 맞춘다 */
+  #board-text .dv { color: #b4550c; font-family: 'Noto Sans Devanagari', sans-serif; font-weight: 900; font-size: 1.2em; }
+  #board-text .hl { color: #d9720f; font-family: 'Noto Sans Devanagari', sans-serif; font-weight: 900; font-size: 1.2em; }
+
+  /* 시작 화면 안내: 두더지 게임을 안 하고 왔을 수도 있는 사람을 위한 보조 안내 + 링크 */
+  .intro-note {
+    margin-top: 0.6em;
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    font-size: clamp(12px, 1.5vw, 16px);
+    font-weight: 600; color: #6b7280; line-height: 1.5;
+  }
+  .intro-link {
+    pointer-events: auto;
+    color: #2563eb; font-weight: 800; text-decoration: underline;
+    cursor: pointer;
+  }
+  .intro-link:hover { color: #1d4ed8; }
+
+  #board-sub {
+    left: 27%; top: 34%; width: 65.5%; height: 5%;
+    font-size: clamp(13px, 1.7vw, 18px); font-weight: 800; color: #16a34a;
+  }
+
+  /* 모음/부호 존(원본 이미지에선 비워둔 자리)에 상황에 맞는 문자를 그려 넣는다 */
+  /* 모음·부호: PC 데모와 같은 진회색·큰 글씨. 글자마다 span으로 나눠 살짝 띄운다. */
+  .sign-label {
+    display: flex; align-items: center; justify-content: center; gap: 0 0.12em;
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    font-weight: 800; font-size: clamp(16px, 2.6vw, 34px);
+    color: #2b2b2b; white-space: nowrap;
+  }
+  /* 데바나가리 부호는 글자 칸 위쪽에 몰려 그려져서 키 중앙보다 위로 붙어 보인다 — 살짝 내린다 */
+  .sign-label .sign-ch { padding: 0 0.06em; line-height: 1; position: relative; top: 0.12em; }
+  /* ृ는 받침 자리 왼쪽으로 삐져나와 앞 글자(ू)에 붙어 보여서 따로 더 띄운다 */
+  .sign-label .sign-ch.gap-l { padding-left: 0.22em; }
+  .sign-label.count-3 { font-size: clamp(14px, 2.2vw, 28px); }
+  /* ु ू ृ는 받침(NBSP) 아래 왼쪽으로 그려져 키 중앙보다 좌측으로 치우쳐 보인다 — 실측 약 0.11em만큼 오른쪽으로 */
+  #key-m:not(.independent) .sign-ch { left: 0.11em; }
+  /* े ै도 같은 이유로 좌측으로 치우친다(실측 약 0.12em) */
+  #key-i:not(.independent) .sign-ch { left: 0.12em; }
+  .sign-label.independent { color: #404040; font-size: clamp(12px, 1.7vw, 22px); gap: 0 0.08em; }
+  .sign-label.independent .sign-ch { padding: 0; }
+  #key-k.sign-label { color: #0ea5e9; font-weight: 900; font-size: clamp(16px, 2.4vw, 30px); }
+  #key-k.sign-label.active-group { color: #009fca; }
+  #key-k.sign-label.independent { color: #404040; }
+
+  /* 힌트: 지금 눌러야 할 키 "위"에 살짝 위아래로 움직이는 화살표 하나만 띄운다.
+     키 내용(다음키의 하늘색 화살표/서브 자음 등) 자체는 절대 가리지 않는다. */
+  #key-arrow {
+    width: 0; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center;
+  }
+  #key-arrow.hidden { display: none; }
+  #key-arrow .tip {
+    width: 0; height: 0;
+    border-left: 1.1vw solid transparent;
+    border-right: 1.1vw solid transparent;
+    border-top: 1.5vw solid #d64545;
+    max-width: 16px; max-height: 20px;
+    border-left-width: 12px; border-right-width: 12px; border-top-width: 16px;
+    animation: arrowBob 0.75s ease-in-out infinite;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,.25));
+  }
+  @keyframes arrowBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(7px); } }
+
+  /* Next: 스텝이 끝나면 스페이스바 영역에 라벨이 뜨고 깜빡인다(화살표 아님, 이미지와 안 겹침) */
+  #next-label {
+    left: 37.02%; top: 82%; width: 25.51%; height: 9.93%;
+    display: none; align-items: center; justify-content: center;
+    font-family: 'Segoe UI', sans-serif; font-weight: 900;
+    font-size: clamp(14px, 2vw, 22px); color: #b45309;
+  }
+  #next-label.show { display: flex; animation: nextBlink 0.9s ease-in-out infinite; }
+  @keyframes nextBlink { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
+
+  /* 스페이스바 평소 라벨(स्पेस/स्वर) — 진행상 Next를 띄울 때만 잠깐 이 자리를 내준다 */
+  #space-label {
+    left: 37.02%; top: 82%; width: 25.51%; height: 9.93%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Noto Sans Devanagari', sans-serif; font-weight: 700;
+    font-size: clamp(14px, 2vw, 22px); color: #8b98a5;
+  }
+  #space-label.hide { display: none; }
+
+  /* 시작 타이틀 — 타자 효과 없이 한 번에 찍혀 나온다(진행 멘트와 달리 정적) */
+  .intro-title {
+    font-family: 'Segoe UI', sans-serif; font-weight: 900;
+    font-size: clamp(20px, 3vw, 32px); color: #1c2733; margin-bottom: 0.35em;
+  }
+  .intro-sub {
+    font-size: clamp(14px, 1.85vw, 20px); font-weight: 700; color: #4b5563;
+  }
+</style>
+</head>
+<body>
+
+<button id="homeBtn" onclick="location.href='index.html'">Home</button>
+
+<div id="stage">
+  <img id="bg-img" src="../images/bg_tutorial.png" alt="" draggable="false" />
+
+  <div id="progress-dots" class="ov"></div>
+  <div id="monitor-text" class="ov"></div>
+  <div id="board-text-wrap" class="ov"><div id="board-text"></div></div>
+  <div id="board-sub" class="ov"></div>
+
+  <div id="key-u" class="ov sign-label"></div>
+  <div id="key-i" class="ov sign-label"></div>
+  <div id="key-o" class="ov sign-label"></div>
+  <div id="key-j" class="ov sign-label"></div>
+  <div id="key-k" class="ov sign-label"></div>
+  <div id="key-l" class="ov sign-label"></div>
+  <div id="key-n" class="ov sign-label"></div>
+  <div id="key-m" class="ov sign-label"></div>
+
+  <div id="space-label" class="ov">स्पेस/स्वर</div>
+  <div id="next-label" class="ov">▶ Next</div>
+
+  <div id="key-arrow" class="ov hidden"><div class="tip"></div></div>
+</div>
+
+<script src="../layouts/hi.js"></script>
+<script src="../layouts/mantra/mai.js"></script>
+<script src="../layouts/common.js"></script>
+<script>
+// ── 이미지(bg_tutorial.png, 1922x1146) 위 각 요소의 실측 좌표(px) → %로 변환 ──
+const IMG_W = 1922, IMG_H = 1146;
+function pctBox(x0, y0, x1, y1) {
+  return { left: x0 / IMG_W * 100, top: y0 / IMG_H * 100, width: (x1 - x0) / IMG_W * 100, height: (y1 - y0) / IMG_H * 100 };
+}
+const KEY_BOXES = {
+  q: pctBox(276,556,384,668), w: pctBox(402,556,510,668), e: pctBox(530,556,638,668), r: pctBox(656,556,764,668), t: pctBox(781,556,889,668),
+  a: pctBox(305,685,414,797), s: pctBox(432,685,542,797), d: pctBox(559,685,668,797), f: pctBox(684,685,793,797), g: pctBox(811,685,920,797),
+  z: pctBox(362,814,471,925), x: pctBox(488,814,598,925), c: pctBox(614,814,724,925), v: pctBox(741,814,850,925), b: pctBox(866,814,975,925),
+  u: pctBox(1118,556,1227,668), i: pctBox(1245,556,1355,668), o: pctBox(1372,556,1481,668),
+  j: pctBox(1149,685,1258,797), k: pctBox(1276,685,1385,797), l: pctBox(1402,685,1512,797),
+  n: pctBox(1079,814,1188,925), m: pctBox(1205,814,1314,925),
+  space: pctBox(712,941,1201,1053),
+};
+function placeOverlay(el, box) {
+  el.style.left = box.left + '%'; el.style.top = box.top + '%';
+  el.style.width = box.width + '%'; el.style.height = box.height + '%';
+}
+['u','i','o','j','k','l','n','m'].forEach(k => placeOverlay(document.getElementById('key-' + k), KEY_BOXES[k]));
+
+// ── 자음 그룹 / 물리 QWERTY 레이아웃 — 배열 데이터는 layouts/<언어>.js(MK_LAYOUT).
+//    (자음 라벨은 이미지에 이미 그려져 있으므로 여기선 라우팅용 정의만 필요하다)
+const consonantGroups = MK_LAYOUT.consonantGroups;
+const CONSONANT_KEYS = {};
+MK_LAYOUT.pcConsonantKeys.forEach((row, r) => row.forEach((key, c) => {
+  CONSONANT_KEYS[key] = MK_LAYOUT.consonantRows[r][c];
+}));
+// id는 멀티탭(같은 키 연타) 판정용 — 키마다 달라야 한다. (예전엔 u·i·o에 id가 없어서
+// ं 다음에 े를 치면 둘 다 undefined라 같은 키 연타로 오인되는 버그가 있었다)
+const SIGN_DEFS = {};
+Object.entries(MK_LAYOUT.signKeys).forEach(([key, def]) => { SIGN_DEFS[key] = { ...def, id: key }; });
+
+let state = {
+  activeRoot: null, activeCharIdx: 0,
+  lastSignKey: null, signTapIdx: 0,
+  signIndepMode: false, independentMode: false,
+};
+
+let rawText = '';
+const getText = () => rawText;
+const monitorEl = document.getElementById('monitor-text');
+const setText = t => {
+  rawText = t;
+  const pending = t.endsWith(' ');
+  const body = pending ? t.slice(0, -1) : t;
+  const esc = body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const dot = pending ? `<span class="pending-space-dot">_</span>` : '';
+  monitorEl.innerHTML = esc + dot + `<span class="cursor"></span>`;
+};
+const appendText = c => setText(getText() + c);
+const doBackspace = () => { const t = getText(); if (!t.length) return; setText(t.slice(0,-1)); };
+
+// 텍스트 맨 끝이 어느 자음 그룹의 몇 번째 글자인지 — 가장 긴 일치 우선(ज्ञ를 ञ로 오인 방지)
+function groupAtEnd(t) {
+  let best = null;
+  for (const [root, arr] of Object.entries(consonantGroups)) {
+    arr.forEach((ch, idx) => {
+      if (t.endsWith(ch) && (!best || ch.length > best.len)) best = { root, idx, len: ch.length };
+    });
+  }
+  return best;
+}
+function independentActive() {
+  if (state.independentMode) return true;
+  return getText().endsWith(' ');
+}
+function handleConsonant(root) {
+  appendText(root);
+  state.activeRoot = root; state.activeCharIdx = 0;
+  state.lastSignKey = null; state.signTapIdx = 0;
+  state.independentMode = false;
+  updateKbdUI();
+}
+function handleNext() {
+  if (independentActive()) {
+    if (state.lastSignKey === 'K' && state.signIndepMode) return;
+    const t = getText();
+    if (t.endsWith(' ')) setText(t.slice(0, -1));
+    appendText('अ');
+    state.independentMode = true;
+    state.lastSignKey = 'K'; state.signTapIdx = 0; state.signIndepMode = true;
+    state.activeRoot = null; state.activeCharIdx = 0;
+    updateKbdUI(); return;
+  }
+  if (!state.activeRoot) return;
+  const arr = consonantGroups[state.activeRoot];
+  const nextIdx = (state.activeCharIdx + 1) % arr.length;
+  const t = getText();
+  setText(t.slice(0, t.length - arr[state.activeCharIdx].length) + arr[nextIdx]);
+  state.activeCharIdx = nextIdx;
+  state.lastSignKey = null; state.signTapIdx = 0;
+  updateKbdUI();
+}
+function handleVowelKey(key, def) {
+  const isIndep = independentActive();
+  const chars = isIndep ? (def.indep ? def.indep.concat(def.chars) : def.chars) : def.chars;
+  if (state.lastSignKey === def.id && state.signIndepMode === isIndep) {
+    state.signTapIdx = (state.signTapIdx + 1) % chars.length;
+    setText(getText().slice(0, -1) + chars[state.signTapIdx]);
+  } else {
+    if (isIndep) {
+      const t = getText();
+      if (t.endsWith(' ')) setText(t.slice(0, -1));
+      appendText(chars[0]);
+      state.independentMode = true;
+    } else {
+      appendText(chars[0]);
+    }
+    state.lastSignKey = def.id; state.signTapIdx = 0; state.signIndepMode = isIndep;
+  }
+  state.activeRoot = null; state.activeCharIdx = 0;
+  updateKbdUI();
+}
+// 백스페이스 = 직전 입력 취소. 자음키/다음키로 넣은 ज्ञ·क्ष는 통째로 지운다.
+function handleBS() {
+  const cur = state.activeRoot ? consonantGroups[state.activeRoot][state.activeCharIdx] : null;
+  const t = getText();
+  if (cur && cur.length > 1 && t.endsWith(cur)) setText(t.slice(0, -cur.length));
+  else doBackspace();
+  state.lastSignKey = null; state.signTapIdx = 0; state.independentMode = false;
+  const g = groupAtEnd(getText());
+  state.activeRoot = g ? g.root : null;
+  state.activeCharIdx = g ? g.idx : 0;
+  updateKbdUI();
+}
+function handleSpace() {
+  appendText(' ');
+  state.activeRoot = null; state.activeCharIdx = 0;
+  state.lastSignKey = null; state.signTapIdx = 0;
+  state.independentMode = false;
+  updateKbdUI();
+}
+// 결합기호를 홀로 표시하면 폰트가 점선원(◌)을 붙여 그린다. 앞에 NBSP를 받침 자리로
+// 깔아주면 점선원 없이 부호만 그려진다(pc_demo_windows.html과 같은 방식).
+function isDiacritic(c) {
+  const cp = c.codePointAt(0);
+  return (cp >= 0x0900 && cp <= 0x0903) || cp === 0x093C || (cp >= 0x093E && cp <= 0x094D);
+}
+function updateKbdUI() {
+  const isIndep = independentActive();
+  const nextEl = document.getElementById('key-k');
+  nextEl.classList.toggle('independent', isIndep);
+  nextEl.classList.toggle('active-group', !isIndep && !!state.activeRoot);
+  // 평소(대기) 상태의 하늘색 화살표는 bg_tutorial.png 자체에 이미 그려져 있으므로,
+  // 여기서는 보여줄 게 있을 때만(서브 자음/अ) 그 위에 겹쳐 쓰고, 그 외엔 비워 둔다.
+  if (isIndep) nextEl.textContent = 'अ';
+  else if (state.activeRoot) nextEl.innerHTML = consonantGroups[state.activeRoot].slice(1).map(mkLabelHtml).join(' ');
+  else nextEl.textContent = '';
+
+  Object.entries(SIGN_DEFS).forEach(([key, def]) => {
+    const el = document.getElementById('key-' + key);
+    const chars = isIndep ? (def.indep || def.chars) : def.chars;
+    el.classList.toggle('independent', isIndep && !!def.indep);
+    el.textContent = '';
+    el.classList.toggle('count-3', chars.length >= 3);
+    chars.forEach(c => {
+      const sp = document.createElement('span');
+      sp.className = 'sign-ch' + (c === 'ृ' ? ' gap-l' : '');
+      sp.textContent = isDiacritic(c) ? '\u00A0' + c : c;
+      el.appendChild(sp);
+    });
+  });
+}
+function resetEditor() {
+  setText('');
+  state = { activeRoot:null, activeCharIdx:0, lastSignKey:null, signTapIdx:0, signIndepMode:false, independentMode:false };
+  updateKbdUI();
+}
+
+// ── 튜토리얼 대사/연출 ─────────────────────────────────────────────
+function seg(text, cls) { return { text, cls: cls || '' }; }
+
+const TAP_AGAIN = 'एक बेर फेर दबाउ।';
+
+const STEPS = [
+  {
+    id: 'groups', type: 'info',
+    segments: [
+      seg('समान उच्चारणक आधार पर व्यंजन सभकेँ समूहमे राखल गेल अछि।\nउदाहरण: '),
+      ...MK_LAYOUT.groupExamples.flatMap((root, n) => [
+        ...(n ? [seg(', ')] : []), seg(MK_LAYOUT.consonantGroups[root].join(''), 'dv'),
+      ]),
+      seg(' आदि'),
+    ],
+  },
+  {
+    id: 'kha', type: 'exercise',
+    segments: [
+      seg('नीचाँक व्यंजन मुख्य व्यंजन + अगिला (➤) बटन दबा कऽ टाइप कएल जाइत अछि।\nआब \''),
+      seg('ख', 'dv'), seg('\' टाइप कऽ देखू।'),
+    ],
+    firstHint: mkConsonantPos('ख').pcKey,
+    successText: 'शाबास!',
+    evaluate() {
+      const t = getText();
+      if (t === 'ख') return { status: 'success' };
+      if (t === 'क') return { status: 'partial', hint: 'k' };
+      return { status: 'mismatch' };
+    },
+  },
+  {
+    id: 'mnemonic', type: 'info',
+    segments: [
+      seg('व्यंजनक क्रम एना याद राखि सकैत छी (रंगीन अक्षर = व्यंजन क्रम)\n'),
+      ...MK_LAYOUT.mantra.flatMap((line, n) => [
+        seg((n ? '\n' : '') + 'पाँति ' + (n + 1) + ': '),
+        ...mkMantraSegments(line).map(p => seg(p.text, p.hl ? 'hl' : '')),
+      ]),
+    ],
+  },
+  {
+    id: 'placement', type: 'info',
+    segments: [
+      seg('स्वर आ चिह्न व्यंजनसँ जुड़बाक स्थानक अनुसार राखल गेल अछि।\nऊपर लागय बला ऊपर, नीचाँ लागय बला नीचाँ।\nविशेष रूपसँ '),
+      seg('हलंत', 'dv'), seg('क स्थिति सेहो नीक जकाँ याद राखू।'),
+    ],
+  },
+  {
+    id: 'multitap', type: 'exercise',
+    segments: [
+      seg('चिह्न मल्टी-टैपसँ टाइप कएल जाइत अछि।\n\''),
+      seg('जी', 'dv'), seg('\' टाइप कऽ देखू।'),
+    ],
+    firstHint: mkConsonantPos('ज').pcKey,
+    successText: 'बिल्कुल सही!',
+    evaluate() {
+      const t = getText();
+      if (t === 'जी') return { status: 'success' };
+      if (t === 'जा') return { status: 'partial', hint: 'l', tapAgain: true };
+      if (t === 'ज') return { status: 'partial', hint: 'l' };
+      return { status: 'mismatch' };
+    },
+  },
+  {
+    id: 'independent', type: 'exercise',
+    segments: [
+      seg('स्वतंत्र स्वरक लेल पहिने स्पेस दबेलासँ स्वर कुंजी सभ स्वतंत्र स्वर मोडमे बदलि जाइत अछि।\n\''),
+      seg('आ', 'dv'), seg('\' टाइप कऽ देखू।'),
+    ],
+    firstHint: 'space',
+    successText: 'परफेक्ट!',
+    evaluate() {
+      const t = getText();
+      if (t === 'आ') return { status: 'success' };
+      if (t === ' ') return { status: 'partial', hint: 'l' };
+      return { status: 'mismatch' };
+    },
+  },
+  {
+    id: 'outro', type: 'info', final: true,
+    segments: [ seg('बहुत बढ़ियाँ! आब स्वयं अभ्यास करब?') ],
+  },
+];
+
+let stepIdx = 0;
+let nextReady = false;
+let typewriterTimer = null;
+
+const boardTextEl = document.getElementById('board-text');
+const boardSubEl = document.getElementById('board-sub');
+const stageEl = document.getElementById('stage');
+const nextLabelEl = document.getElementById('next-label');
+const spaceLabelEl = document.getElementById('space-label');
+const arrowEl = document.getElementById('key-arrow');
+
+function buildProgressDots() {
+  const wrap = document.getElementById('progress-dots');
+  const milestoneCount = STEPS.filter(s => !s.final).length;
+  for (let i = 0; i < milestoneCount; i++) {
+    const d = document.createElement('span');
+    d.className = 'dot';
+    wrap.appendChild(d);
+  }
+}
+function updateProgress(i) {
+  const dots = document.querySelectorAll('#progress-dots .dot');
+  dots.forEach((d, idx) => d.classList.toggle('done', idx < i));
+}
+
+// 지금 눌러야 할 키 "바로 위"에 화살표 하나만 띄운다(스페이스바도 폭 중앙 기준으로
+// 동일하게 가리킨다 — 독립모음 단계에서 스페이스를 먼저 눌러야 한다는 걸 화살표로도
+// 알려줘야 한다).
+function showArrow(name) {
+  if (!name) { hideArrow(); return; }
+  const box = KEY_BOXES[name];
+  if (!box) { hideArrow(); return; }
+  arrowEl.style.left = (box.left + box.width / 2) + '%';
+  arrowEl.style.top = (box.top - 3.4) + '%';
+  arrowEl.classList.remove('hidden');
+}
+function hideArrow() { arrowEl.classList.add('hidden'); }
+
+function setSubText(t) { boardSubEl.textContent = t || ''; }
+
+// ── 타자 효과 + 효과음 ──────────────────────────────────────────
+let audioCtx = null;
+function ensureAudio() {
+  if (!audioCtx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) audioCtx = new AC();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+}
+function playTick() {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'square';
+  osc.frequency.value = 1150 + Math.random() * 220;
+  gain.gain.setValueAtTime(0.05, t);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start(t); osc.stop(t + 0.05);
+}
+
+const TYPE_DELAY = 42;
+function typeText(segments, onDone) {
+  clearTimeout(typewriterTimer);
+  boardTextEl.innerHTML = '';
+  const flat = [];
+  segments.forEach(s => { for (const ch of s.text) flat.push({ ch, cls: s.cls }); });
+  let i = 0;
+  function step() {
+    if (i >= flat.length) { onDone && onDone(); return; }
+    const { ch, cls } = flat[i];
+    if (ch === '\n') {
+      boardTextEl.appendChild(document.createElement('br'));
+    } else {
+      const span = document.createElement('span');
+      if (cls) span.className = cls;
+      span.textContent = ch;
+      boardTextEl.appendChild(span);
+      if (ch.trim()) playTick();
+    }
+    i++;
+    typewriterTimer = setTimeout(step, TYPE_DELAY);
+  }
+  step();
+}
+
+function startNextWait() {
+  nextReady = true;
+  nextLabelEl.classList.add('show');
+  spaceLabelEl.classList.add('hide');
+}
+function stopNextWait() {
+  nextReady = false;
+  nextLabelEl.classList.remove('show');
+  spaceLabelEl.classList.remove('hide');
+}
+function scheduleNextWait(delay) {
+  setTimeout(startNextWait, delay || 550);
+}
+
+function showStep(i) {
+  hideArrow(); stopNextWait();
+  setSubText('');
+  updateProgress(i);
+  const step = STEPS[i];
+  // 모니터/다음키/모음키처럼 진행에 따라 바뀌는 부분은 단계가 바뀔 때마다(정보 단계로
+  // 넘어갈 때도) 곧바로 리셋해서, 이전 단계의 흔적이 다음 장면까지 남지 않게 한다.
+  resetEditor();
+  typeText(step.segments, () => {
+    if (step.type === 'info') {
+      scheduleNextWait();
+    } else {
+      setTimeout(() => showArrow(step.firstHint), 550);
+    }
+  });
+}
+
+function advanceStep() {
+  stopNextWait();
+  stepIdx++;
+  if (stepIdx >= STEPS.length) {
+    window.location.href = 'pc_demo_windows.html';
+    return;
+  }
+  showStep(stepIdx);
+}
+
+function onExerciseSuccess(step) {
+  hideArrow();
+  setSubText(step.successText);
+  scheduleNextWait(650);
+}
+
+function afterExerciseKey() {
+  const step = STEPS[stepIdx];
+  const r = step.evaluate();
+  if (r.status === 'success') { onExerciseSuccess(step); return; }
+  if (r.status === 'partial') {
+    showArrow(r.hint);
+    setSubText(r.tapAgain ? TAP_AGAIN : '');
+    return;
+  }
+  resetEditor();
+  setSubText('');
+  showArrow(step.firstHint);
+}
+
+// ── 물리 키보드 입력 ───────────────────────────────────────────
+const ignoredKeys = new Set(['shift','control','alt','meta','capslock','tab','escape',
+  'arrowleft','arrowright','arrowup','arrowdown',
+  'f1','f2','f3','f4','f5','f6','f7','f8','f9','f10','f11','f12']);
+
+// 시작 화면: 타자 효과 없이 타이틀/안내를 한 번에 찍어 두고, 스페이스바의 Next만
+// 깜빡인다. 이 화면에서의 스페이스 입력이 곧 첫 실제 사용자 제스처라, 그때 오디오도
+// 함께 풀려서 1단계부터 타자 효과음이 정상적으로 나온다.
+let started = false;
+function renderIntro() {
+  boardTextEl.innerHTML =
+    '<div class="intro-title">MantraKey Tutorial 1.0</div>' +
+    '<div class="intro-sub">शुरू करबाक लेल स्पेसबार दबाउ।</div>' +
+    '<div class="intro-note">जँ अहाँ \'मोल गेम\' नहि खेलने छी, तँ एकरा पूरा करब कठिन भऽ सकैत अछि। ' +
+    '<a href="mole.html" class="intro-link">\'मोल गेम\' खेलय जाउ</a></div>';
+  setSubText('');
+  startNextWait();
+}
+function startTutorial() {
+  started = true;
+  showStep(0);
+}
+
+// 한글 IME가 켜져 있으면 키 한 번에 keydown이 "Process" + 실제 키로 두 번 온다.
+// 스페이스는 e.code로도 잡으니 두 번 다 스페이스가 돼서, Next로 넘어가자마자 공백이 찍혀
+// 독립모음 판이 미리 켜지는 버그가 있었다 → keyup 전까지 같은 키는 한 번만 받는다.
+// (글자키의 "Process"는 뒤따르는 실제 keydown으로 처리되도록 한 번만 받기 목록에 넣지 않는다)
+const heldCodes = new Set();
+window.addEventListener('keyup', (e) => heldCodes.delete(e.code));
+window.addEventListener('blur', () => heldCodes.clear());
+window.addEventListener('keydown', (e) => {
+  ensureAudio();
+  const raw = e.key;
+  const isSpace = raw === ' ' || e.code === 'Space' || raw === 'Spacebar';
+  const k = isSpace ? ' ' : (raw || '').toLowerCase();
+  if (!isSpace && ignoredKeys.has(k)) return;
+  e.preventDefault();
+  if (raw === 'Process' && !isSpace) return;
+  if (e.repeat || heldCodes.has(e.code)) return;
+  heldCodes.add(e.code);
+
+  if (!started) { if (k === ' ') startTutorial(); return; }
+
+  if (nextReady) {
+    if (k === ' ') advanceStep();
+    return;
+  }
+
+  const step = STEPS[stepIdx];
+  if (step.type !== 'exercise') return;
+
+  if (k === 'backspace') { handleBS(); afterExerciseKey(); return; }
+  if (k === ' ') { handleSpace(); afterExerciseKey(); return; }
+
+  if (CONSONANT_KEYS[k]) { handleConsonant(CONSONANT_KEYS[k]); afterExerciseKey(); return; }
+  if (k === 'k') { handleNext(); afterExerciseKey(); return; }
+  if (SIGN_DEFS[k]) { handleVowelKey(k, SIGN_DEFS[k]); afterExerciseKey(); return; }
+});
+
+// ── 시작 ───────────────────────────────────────────────────────
+resetEditor();
+buildProgressDots();
+renderIntro();
+</script>
+</body>
+</html>

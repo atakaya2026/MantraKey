@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Whack-a-Mole</title>
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: #eef3e8;
+    font-family: 'Segoe UI', system-ui, -apple-system, Apple SD Gothic Neo, Noto Sans KR, Arial, sans-serif;
+  }
+  #homeBtn {
+    position: fixed; top: 20px; right: 24px; z-index: 10000;
+    padding: 10px 18px; font-size: 1.1em;
+    background-color: #3f6fb8; color: #fff;
+    border: none; border-radius: 8px; cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+  .stage { position: relative; width: min(1000px, 96vw); margin: 64px auto; }
+  #gameScreen { position: relative; width: 100%; display: none; }
+  .bgImg { width: 100%; display: block; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,.12); }
+  .scoreVal {
+    position: absolute; transform: translate(-50%, -50%);
+    font-size: clamp(12px, 1.7vw, 24px); font-weight: 700; color: #6b5636;
+    font-family: Arial, sans-serif;
+  }
+  #moleLayer { position: absolute; inset: 0; pointer-events: none; }
+  .moleSprite { position: absolute; width: 9%; aspect-ratio: 1 / 1; }
+
+  #slideOverlay, #successOverlay {
+    position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+    background: rgba(255,255,255,.97); z-index: 9999;
+  }
+  .slideCard { display: flex; flex-direction: column; align-items: center; width: min(720px, 90vw); padding: 24px; text-align: center; }
+  #slideTitle { font-size: 30px; font-weight: 700; color: #333; margin-bottom: 10px; }
+  #slideImg { max-width: min(600px, 90vw); height: auto; margin-bottom: 18px; border-radius: 10px; }
+  #slideText { align-self: stretch; text-align: center; font-size: 22px; line-height: 1.6; color: #333; margin-bottom: 18px; }
+  .spaceHint { font-size: 18px; font-weight: 700; color: #7aa; user-select: none; visibility: hidden; }
+  .spaceHint.show { visibility: visible; animation: hintBlink 0.9s ease-in-out infinite; }
+  @keyframes hintBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+  #successOverlay .slideCard p { margin: 10px 0; font-size: 22px; color: #000; }
+  #goDemoBtn {
+    margin-top: 20px; padding: 10px 24px; font-size: 20px; border: none;
+    border-radius: 8px; background: #48c; color: #fff; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<button id="homeBtn">Home</button>
+
+<div class="stage">
+  <div id="gameScreen">
+    <img class="bgImg" src="./images/bg_mole1.png" alt="">
+    <div class="scoreVal" id="score-prog">0/30</div>
+    <div class="scoreVal" id="score-whack">0</div>
+    <div class="scoreVal" id="score-missed">0</div>
+    <div class="scoreVal" id="score-swing">0</div>
+    <div id="moleLayer"></div>
+  </div>
+
+  <div id="slideOverlay">
+    <div class="slideCard">
+      <div id="slideTitle"></div>
+      <img id="slideImg" alt="">
+      <div id="slideText"></div>
+      <div class="spaceHint" id="spaceHint">अगला (स्पेसबार)</div>
+    </div>
+  </div>
+
+  <div id="successOverlay">
+    <div class="slideCard">
+      <p style="font-weight:700;">बधाई हो!</p>
+      <p>अब आप केवल स्क्रीन को देखकर अपनी पसंद की कुंजियाँ टाइप कर सकते हैं।<br>'पुष्टि करें' बटन दबाएं और परीक्षण शुरू करें।</p>
+      <button id="goDemoBtn">पुष्टि करें</button>
+    </div>
+  </div>
+</div>
+
+<audio id="sndHammer" src="./images/mole/Hammer.wav" preload="auto"></audio>
+<audio id="sndPong" src="./images/mole/Pong.wav" preload="auto"></audio>
+
+<script src="./mole_game.js"></script>
+</body>
+</html>

@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<!-- 자동 생성 파일 (mai) — tools/build_langs.py. 직접 고치지 말고 루트의 pc_demo_windows.html 또는 i18n/mai.json을 고친 뒤 다시 빌드할 것. -->
+<html lang="mai">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>मंत्रकी PC Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  body {
+    background: url('../images/windows.png') no-repeat center center fixed;
+    background-size: cover;
+    font-family: 'Noto Sans Devanagari', 'Segoe UI', sans-serif;
+    display: flex; flex-direction: column; align-items: center;
+    height: 100vh; margin: 0; overflow: hidden;
+  }
+  #notepad-container {
+    width: 85%; max-width: 950px; margin-top: 60px;
+    background: #fff; box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+    border-radius: 5px; overflow: hidden;
+  }
+  .title-bar {
+    background: #4a86e8; color: white; padding: 8px 15px;
+    font-size: 14px; display: flex; justify-content: space-between;
+  }
+  #editor {
+    height: 380px; padding: 25px; font-size: 38px; border: none; outline: none;
+    white-space: pre-wrap; overflow-y: auto; box-sizing: border-box;
+    position: relative; font-family: 'Noto Sans Devanagari', sans-serif;
+  }
+  .cursor { color: #000; font-weight: 100; animation: blink 1s step-end infinite; }
+  @keyframes blink {
+    from, to { opacity: 0; }
+    50% { opacity: 1; }
+  }
+
+  .kbd-area {
+    margin-top: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+  }
+  .baby-guide-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    padding: 0;
+    backdrop-filter: none;
+    border: none;
+    position: relative;
+    /* keyboard-pc는 scale()로 축소되지만 레이아웃 박스는 원본(850px) 크기라
+       실제 보이는 크기(408x131, 스페이스바 행 포함)로 고정해서 옆 요소들이 붙게 만든다 */
+    width: 408px;
+    height: 131px;
+    flex-shrink: 0;
+  }
+  .challenge-btn {
+    flex-shrink: 0;
+    padding: 14px 18px;
+    background: #f59e0b;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    font-size: 0.95em;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    white-space: nowrap;
+    line-height: 1.5;
+    text-align: center;
+  }
+  .challenge-btn:hover { background: #d97706; }
+  .mnemonic-text {
+    flex-shrink: 0;
+    position: relative;
+    width: 220px;
+    height: 105px;
+    color: #fff;
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    font-weight: 700;
+    font-size: 19px;
+    text-align: right;
+    text-shadow: 1px 1px 5px rgba(0,0,0,0.65);
+    white-space: nowrap;
+  }
+  .mnemonic-text .hl { color: #f59e0b; }
+  /* 각 줄의 top/right는 JS에서 옆 키맵의 해당 행(계단식 위치)에 맞춰 계산한다 */
+  .mnemonic-text p { margin: 0; position: absolute; right: 0; white-space: nowrap; transform: translateY(-50%); }
+  .keyboard-pc {
+    transform: scale(0.48);
+    transform-origin: center;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 850px;
+    flex-shrink: 0;
+    margin-left: 0px;
+    margin-top: -70px;
+    align-self: flex-start;
+  }
+  .kb-row { display: flex; gap: 8px; width: 100%; }
+  #row2 { padding-left: 35px; }
+  #row3 { padding-left: 75px; }
+
+  .key {
+    width: 65px; height: 65px; background: #fff; border-radius: 8px;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    font-size: 24px; font-weight: 800; box-shadow: 0 4px 0 #888;
+    color: #333; position: relative;
+    font-family: 'Noto Sans Devanagari', sans-serif;
+  }
+  /* 중앙 간격을 위한 투명한 칸 */
+  .spacer { width: 40px; height: 65px; }
+
+  /* 모음·부호(다음키 포함) 존은 노란색으로 자음 존과 구분 */
+  .key.blue-zone {
+    background-color: #fef9c3 !important;
+    border: 1px solid #fde047;
+  }
+  .key.multi {
+    font-size: 22px !important; font-weight: 900;
+    white-space: nowrap;
+  }
+  .key.active { transform: translateY(4px); box-shadow: none; background: #eef2ff !important; }
+
+  .key.next-key { color: #0ea5e9; font-weight: 900; font-size: 26px; }
+  .key.next-key.active-group { background-color: #d1fae5 !important; border: 1px solid #16a34a; color: #00b0f0; }
+  .key.next-key.independent { background-color: #dbeafe !important; border: 1px solid #1a6bb8; color: #404040; }
+  /* 모음·부호 키: 자판 전체가 0.48배로 축소돼 보이므로 부호를 크고 진하게(모바일과 같은 진회색).
+     글자마다 span으로 나눠 사이를 살짝 띄운다 — 받침 없는 부호끼리는 맞닿아 보이기 쉬움. */
+  .key.sign-color { color: #2b2b2b; font-weight: 800; font-size: 34px !important; flex-direction: row; gap: 0 4px; }
+  /* 데바나가리 부호는 글자 칸 위쪽에 몰려 그려져서 키 중앙보다 위로 붙어 보인다 — 살짝 내린다 */
+  .key.sign-color .sign-ch { padding: 0 0.06em; line-height: 1; position: relative; top: 0.12em; }
+  /* ृ는 받침 자리 왼쪽으로 삐져나와 앞 글자(ू)에 붙어 보여서 따로 더 띄운다 */
+  .key.sign-color .sign-ch.gap-l { padding-left: 0.22em; }
+  /* े ै / ु ू ृ는 받침(NBSP) 기준 왼쪽으로 그려져 키 중앙보다 좌측으로 치우쳐 보인다 — 실측만큼 오른쪽으로 */
+  #key-i:not(.independent) .sign-ch { left: 0.12em; }
+  #key-m:not(.independent) .sign-ch { left: 0.11em; }
+  /* ा ी ः처럼 세 글자짜리는 34px면 키 폭을 넘는다 */
+  .key.sign-color.count-3 { font-size: 28px !important; gap: 0 2px; }
+  /* 독립모음(उ ऊ ऋ 등)은 폭이 넓어 키 밖으로 넘치지 않게 줄인다 */
+  .key.sign-color.independent { color: #404040; font-size: 22px !important; gap: 0 2px; }
+  .key.sign-color.independent .sign-ch { padding: 0; }
+
+  #row4 { justify-content: center; }
+  .key.space-key { width: 33.333%; height: 48px; font-size: 22px; font-weight: 800; color: #333; margin-right: 75px;}
+
+  .key .main-char { font-size: 32px; font-weight: 900; line-height: 1; font-family: 'Noto Sans Devanagari', sans-serif; }
+  .key .sub-chars { font-size: 24px; color: #0ea5e9; line-height: 1; font-family: 'Noto Sans Devanagari', sans-serif; font-weight: 700; }
+
+  .pending-space-dot { color: #9a9488; animation: none; }
+
+</style>
+</head>
+<body>
+
+<button onclick="location.href='index.html'"
+        style="position: fixed; top: 20px; right: 78px;
+               padding: 10px 18px; font-size: 1.1em;
+               background-color: #3f6fb8; color: #fff;
+               border: none; border-radius: 8px; cursor: pointer;
+               box-shadow: 0 2px 6px rgba(0,0,0,0.15); z-index: 9999;">
+  Home
+</button>
+
+<button onclick="resetEditor()"
+        style="position: fixed; top: 20px; right: 300px;
+               padding: 10px 18px; font-size: 1.1em;
+               background-color: #6b7280; color: #fff;
+               border: none; border-radius: 8px; cursor: pointer;
+               box-shadow: 0 2px 6px rgba(0,0,0,0.15); z-index: 9999;
+               font-family: 'Noto Sans Devanagari', sans-serif;">
+  ↺ रीसेट
+</button>
+
+<div id="notepad-container">
+  <div class="title-bar"><span>Note</span><span>✕</span></div>
+  <div id="editor" contenteditable="false"></div>
+</div>
+
+<div class="kbd-area">
+  <div class="mnemonic-text"><!-- MK_LAYOUT.mantra로 채움 --></div>
+  <div class="baby-guide-container">
+    <div class="keyboard-pc" id="kbd">
+      <div class="kb-row" id="row1"></div>
+      <div class="kb-row" id="row2"></div>
+      <div class="kb-row" id="row3"></div>
+      <div class="kb-row" id="row4"></div>
+    </div>
+  </div>
+  <button class="challenge-btn" onclick="location.href='challenge.html'">
+    🏆 बिना देखने टाइप करू!
+  </button>
+</div>
+
+<script src="../layouts/hi.js"></script>
+<script src="../layouts/mantra/mai.js"></script>
+<script src="../layouts/common.js"></script>
+<script>
+// ── 레이아웃 정의 (물리 QWERTY 키 기준) — 배열 데이터는 layouts/<언어>.js(MK_LAYOUT) ──
+// 열 번호(1~10)는 실제 물리 키 위치 기준. 1,5,6,10열=흰색 / 2~4,7~9열=하늘색
+// Row1: Q W E R T(자음5,1~5열) [gap] Y(빈칸,6열) U I O(모음3,7~9열) P(빈칸,10열)
+// Row2: A S D F G(자음5,1~5열) [gap] H(빈칸,6열) J K(다음키) L(모음,7~9열) — ;열은 삭제
+// Row3: Z X C V B(자음5,1~5열) [gap] N(6열) M(7열) — 쉼표·마침표열은 삭제
+const consonantGroups = MK_LAYOUT.consonantGroups;
+const signDef = (key, col, id) => ({ key, col, type:'sign', id, ...MK_LAYOUT.signKeys[key] });
+const consDefs = r => MK_LAYOUT.pcConsonantKeys[r].map((key, c) =>
+  ({ key, col: c + 1, type:'consonant', root: MK_LAYOUT.consonantRows[r][c] }));
+const rowDefs = [
+  [ ...consDefs(0), { key:'_sp1', type:'spacer' }, { key:'y', col:6, type:'empty' },
+    signDef('u', 7, 'r0c0'), signDef('i', 8, 'r0c1'), signDef('o', 9, 'r0c2'), { key:'p', col:10, type:'empty' } ],
+  [ ...consDefs(1), { key:'_sp2', type:'spacer' }, { key:'h', col:6, type:'empty' },
+    signDef('j', 7, 'r1c0'), { key:'k', col:8, type:'next' }, signDef('l', 9, 'r1c2') ],
+  [ ...consDefs(2), { key:'_sp3', type:'spacer' },
+    signDef('n', 6, 'r2c0'), signDef('m', 7, 'r2c1') ],
+  [ { key:' ', type:'space', label:'स्पेस/स्वर' } ],
+];
+
+const keyLookup = {};
+rowDefs.forEach(row => row.forEach(def => { keyLookup[def.key] = def; }));
+
+// 열 번호 기준 색상: 2~4, 7~9열은 하늘색, 나머지(1,5,6,10)는 흰색
+const blueCols = new Set([2,3,4,7,8,9]);
+
+let state = {
+  activeRoot: null, activeCharIdx: 0,
+  lastSignKey: null, signTapIdx: 0,
+  signIndepMode: false, independentMode: false,
+};
+
+const editor = document.getElementById('editor');
+let rawText = '';
+const getText = () => rawText;
+// 맨 끝 공란은 독립모음이 뒤따르면 대체될 수 있는 미확정 상태라, 모바일 데모처럼
+// 실제 공백 대신 회색 점을 깜빡여 보여준다(handleNext에서 실제로 대체됨).
+const setText = t => {
+  rawText = t;
+  const pending = t.endsWith(' ');
+  const body = pending ? t.slice(0, -1) : t;
+  const esc = body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const dot = pending ? `<span class="pending-space-dot">_</span>` : '';
+  editor.innerHTML = esc + dot + `<span class="cursor">▏</span>`;
+};
+const appendText = c => setText(getText() + c);
+const doBackspace = () => { const t = getText(); if (!t.length) return; setText(t.slice(0,-1)); };
+
+// 텍스트 맨 끝이 어느 자음 그룹의 몇 번째 글자인지 — 가장 긴 일치 우선(ज्ञ를 ञ로 오인 방지)
+function groupAtEnd(t) {
+  let best = null;
+  for (const [root, arr] of Object.entries(consonantGroups)) {
+    arr.forEach((ch, idx) => {
+      if (t.endsWith(ch) && (!best || ch.length > best.len)) best = { root, idx, len: ch.length };
+    });
+  }
+  return best;
+}
+
+// 독립모음 모드는 오직 스페이스바를 눌렀을 때만 진입한다
+function independentActive() {
+  if (state.independentMode) return true;
+  return getText().endsWith(' ');
+}
+
+function handleConsonant(root) {
+  appendText(root);
+  state.activeRoot = root; state.activeCharIdx = 0;
+  state.lastSignKey = null; state.signTapIdx = 0;
+  state.independentMode = false;
+  updateKbdUI();
+}
+
+function handleNext() {
+  if (independentActive()) {
+    if (state.lastSignKey === 'K' && state.signIndepMode) { return; } // 'अ' 하나뿐, 재입력 없음
+    const t = getText();
+    if (t.endsWith(' ')) setText(t.slice(0, -1));
+    appendText('अ');
+    state.independentMode = true;
+    state.lastSignKey = 'K'; state.signTapIdx = 0; state.signIndepMode = true;
+    state.activeRoot = null; state.activeCharIdx = 0;
+    updateKbdUI(); return;
+  }
+  if (!state.activeRoot) return;
+  const arr = consonantGroups[state.activeRoot];
+  const nextIdx = (state.activeCharIdx + 1) % arr.length;
+  const t = getText();
+  setText(t.slice(0, t.length - arr[state.activeCharIdx].length) + arr[nextIdx]);
+  state.activeCharIdx = nextIdx;
+  state.lastSignKey = null; state.signTapIdx = 0;
+  updateKbdUI();
+}
+
+// PC는 물리 마침표(.) 키가 이미 있으므로, 모바일처럼 화면에 전용 키를 새로 그릴
+// 필요 없이 그 물리 키 입력을 바로 여기로 연결한다. 모바일과 같은 규칙: ।(1탭) - ..(2탭)
+// - ...(3탭), 그 뒤로는 점이 하나씩 계속 늘어난다(상한 없음).
+function dandaSeq(idx) {
+  return idx === 0 ? '।' : '.'.repeat(idx + 1);
+}
+
+function handleDanda() {
+  if (state.lastSignKey === 'DANDA') {
+    const prev = dandaSeq(state.signTapIdx);
+    const t = getText();
+    setText(t.slice(0, -prev.length));
+    state.signTapIdx += 1;
+    appendText(dandaSeq(state.signTapIdx));
+  } else {
+    appendText(dandaSeq(0));
+    state.lastSignKey = 'DANDA'; state.signTapIdx = 0; state.signIndepMode = false;
+  }
+  state.activeRoot = null; state.activeCharIdx = 0;
+  state.independentMode = false;
+  updateKbdUI();
+}
+
+function handleVowelKey(def) {
+  const isIndep = independentActive();
+  // 독립모음 모드에서는 독립모음 한 바퀴를 다 돈 다음 의존모음 한 바퀴, 다시 독립모음 순으로 순환한다
+  const chars = isIndep ? (def.indep ? def.indep.concat(def.chars) : def.chars) : def.chars;
+
+  if (state.lastSignKey === def.id && state.signIndepMode === isIndep) {
+    state.signTapIdx = (state.signTapIdx + 1) % chars.length;
+    setText(getText().slice(0, -1) + chars[state.signTapIdx]);
+  } else {
+    if (isIndep) {
+      const t = getText();
+      if (t.endsWith(' ')) setText(t.slice(0, -1));
+      appendText(chars[0]);
+      state.independentMode = true;
+    } else {
+      appendText(chars[0]);
+    }
+    state.lastSignKey = def.id; state.signTapIdx = 0; state.signIndepMode = isIndep;
+  }
+  state.activeRoot = null; state.activeCharIdx = 0;
+  updateKbdUI();
+}
+
+function handleShiftLetter(ch) {
+  appendText(ch);
+  state.activeRoot = null; state.activeCharIdx = 0;
+  state.lastSignKey = null; state.signTapIdx = 0;
+  state.independentMode = false;
+  updateKbdUI();
+}
+
+// 백스페이스 = 직전 입력 취소. 자음키/다음키로 넣은 ज्ञ·क्ष는 통째로 지운다.
+function handleBS() {
+  const cur = state.activeRoot ? consonantGroups[state.activeRoot][state.activeCharIdx] : null;
+  const t = getText();
+  if (cur && cur.length > 1 && t.endsWith(cur)) setText(t.slice(0, -cur.length));
+  else doBackspace();
+  state.lastSignKey = null; state.signTapIdx = 0; state.independentMode = false;
+  const g = groupAtEnd(getText());
+  state.activeRoot = g ? g.root : null;
+  state.activeCharIdx = g ? g.idx : 0;
+  updateKbdUI();
+}
+
+function handleSpace() {
+  appendText(' ');
+  state.activeRoot = null; state.activeCharIdx = 0;
+  state.lastSignKey = null; state.signTapIdx = 0;
+  state.independentMode = false;
+  updateKbdUI();
+}
+
+function handleEnter() {
+  appendText('\n');
+  state.activeRoot = null; state.activeCharIdx = 0;
+  state.lastSignKey = null; state.signTapIdx = 0;
+  state.independentMode = false;
+  updateKbdUI();
+}
+
+// 결합기호(마트라 등)를 홀로 표시하면 폰트가 점선원(◌)을 붙여 그린다. 앞에 NBSP를 받침
+// 자리로 깔아주면 점선원 없이 부호만 그려진다(모바일 keyboard.js의 markLabel과 같은 방식).
+function isDiacritic(c) {
+  const cp = c.codePointAt(0);
+  return (cp >= 0x0900 && cp <= 0x0903) || cp === 0x093C || (cp >= 0x093E && cp <= 0x094D);
+}
+
+// ── 키보드 이벤트 ──────────────────────────────────────────
+const ignoredKeys = new Set(['shift','control','alt','meta','capslock','tab','escape',
+  'arrowleft','arrowright','arrowup','arrowdown',
+  'f1','f2','f3','f4','f6','f7','f8','f9','f10','f11']);
+
+window.addEventListener('keydown', (e) => {
+  const raw = e.key;
+  const k   = raw === ' ' ? ' ' : raw.toLowerCase();
+  if (ignoredKeys.has(k)) return;
+  if (k !== 'f5' && k !== 'f12') e.preventDefault();
+
+  const el = document.getElementById(`key-${k === ' ' ? 'space' : k}`);
+  if (el) el.classList.add('active');
+
+  // Shift+알파벳 키는 한디어 모드를 우회하고 대문자 로마자를 그대로 입력한다
+  if (e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey && /^[a-z]$/.test(k)) {
+    handleShiftLetter(raw);
+    editor.scrollTop = editor.scrollHeight;
+    return;
+  }
+
+  if (k === 'backspace') { handleBS(); editor.scrollTop = editor.scrollHeight; return; }
+  if (k === 'enter')     { handleEnter(); editor.scrollTop = editor.scrollHeight; return; }
+  if (k === ' ')         { handleSpace(); editor.scrollTop = editor.scrollHeight; return; }
+  if (k === '.')         { handleDanda(); editor.scrollTop = editor.scrollHeight; return; }
+
+  const def = keyLookup[k];
+  if (!def || def.type === 'empty') return;
+
+  if      (def.type === 'consonant') handleConsonant(def.root);
+  else if (def.type === 'next')      handleNext();
+  else if (def.type === 'sign')      handleVowelKey(def);
+
+  editor.scrollTop = editor.scrollHeight;
+});
+
+window.addEventListener('keyup', (e) => {
+  const k = e.key === ' ' ? ' ' : e.key.toLowerCase();
+  const el = document.getElementById(`key-${k === ' ' ? 'space' : k}`);
+  if (el) el.classList.remove('active');
+});
+
+// ── 키보드 UI 초기화 ───────────────────────────────────────
+function initKbd() {
+  rowDefs.forEach((row, ri) => {
+    const rowEl = document.getElementById(`row${ri + 1}`);
+    row.forEach((def) => {
+      const div = document.createElement('div');
+      div.className = 'key';
+      div.id = `key-${def.key === ' ' ? 'space' : def.key}`;
+
+      if (blueCols.has(def.col)) div.classList.add('blue-zone');
+
+      if (def.type === 'consonant') {
+        const arr = consonantGroups[def.root];
+        const main = document.createElement('span');
+        main.className = 'main-char';
+        main.textContent = arr[0];
+        div.appendChild(main);
+        if (arr.length > 1) {
+          const sub = document.createElement('span');
+          sub.className = 'sub-chars';
+          sub.innerHTML = arr.slice(1).map(mkLabelHtml).join('');
+          div.appendChild(sub);
+        }
+
+      } else if (def.type === 'sign') {
+        div.classList.add('multi', 'sign-color');
+
+      } else if (def.type === 'next') {
+        div.classList.add('next-key');
+
+      } else if (def.type === 'spacer') {
+        div.className = 'spacer';
+        div.removeAttribute('id');
+
+      } else if (def.type === 'space') {
+        div.classList.add('space-key');
+        div.textContent = def.label;
+      }
+
+      rowEl.appendChild(div);
+    });
+  });
+
+  updateKbdUI();
+}
+
+function updateKbdUI() {
+  const isIndep = independentActive();
+
+  // 다음키
+  const nextEl = document.getElementById('key-k');
+  if (nextEl) {
+    nextEl.classList.toggle('independent', isIndep);
+    nextEl.classList.toggle('active-group', !isIndep && !!state.activeRoot);
+    if (isIndep) {
+      nextEl.textContent = 'अ';
+    } else if (state.activeRoot) {
+      nextEl.innerHTML = consonantGroups[state.activeRoot].slice(1).map(mkLabelHtml).join(' ');
+    } else {
+      nextEl.textContent = '➤';
+    }
+  }
+
+  // 모음·부호 키: 독립모음 모드면 표시 문자셋 전환
+  rowDefs.forEach(row => row.forEach(def => {
+    if (def.type !== 'sign') return;
+    const el = document.getElementById(`key-${def.key}`);
+    if (!el) return;
+    const chars = isIndep ? (def.indep || def.chars) : def.chars;
+    el.classList.toggle('independent', isIndep && !!def.indep);
+    el.textContent = '';
+    el.classList.toggle('count-3', chars.length >= 3);
+    chars.forEach(c => {
+      const sp = document.createElement('span');
+      sp.className = 'sign-ch' + (c === 'ृ' ? ' gap-l' : '');
+      sp.textContent = isDiacritic(c) ? '\u00A0' + c : c;
+      el.appendChild(sp);
+    });
+  }));
+}
+
+function resetEditor() {
+  setText('');
+  state = { activeRoot:null, activeCharIdx:0, lastSignKey:null, signTapIdx:0, signIndepMode:false, independentMode:false };
+  updateKbdUI();
+}
+
+setText('');
+document.querySelector('.mnemonic-text').innerHTML =
+  MK_LAYOUT.mantra.map(line => `<p>${mkMantraHtml(line, 'hl')}</p>`).join('');
+initKbd();
+
+// 문구 박스 폭을 도전 버튼 폭과 맞춰서 키맵이 항상 정중앙에 오게 한다
+function syncMnemonicWidth() {
+  const box = document.querySelector('.mnemonic-text');
+  const btn = document.querySelector('.challenge-btn');
+  box.style.width = '';
+  box.style.width = btn.getBoundingClientRect().width + 'px';
+}
+
+// 암기 문구 각 줄을 옆 키맵의 1~3행 "첫 키"와 같은 높이 + 같은 간격(계단식)으로 정렬
+// (행 컨테이너 자체는 padding-left가 있어도 위치가 안 밀리므로 첫 키 기준으로 재야 한다)
+const MNEMONIC_GAP = 18; // 각 문구 줄 ~ 해당 키맵 행 사이 간격(px)
+function alignMnemonic() {
+  syncMnemonicWidth();
+  const box = document.querySelector('.mnemonic-text');
+  const ps = box.querySelectorAll('p');
+  const boxRect = box.getBoundingClientRect();
+  ['row1','row2','row3'].forEach((id, i) => {
+    const rowEl = document.getElementById(id);
+    const keyRect = (rowEl.firstElementChild || rowEl).getBoundingClientRect();
+    const rowCenter = keyRect.top + keyRect.height / 2;
+    ps[i].style.top = (rowCenter - boxRect.top) + 'px';
+    ps[i].style.right = (boxRect.right - keyRect.left + MNEMONIC_GAP) + 'px';
+  });
+}
+alignMnemonic();
+window.addEventListener('resize', alignMnemonic);
+// 웹폰트가 늦게 로드되면 버튼/문구 폭이 달라지므로 로드 완료 후 다시 맞춘다
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(alignMnemonic);
+</script>
+</body>
+</html>

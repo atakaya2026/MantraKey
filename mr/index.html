@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<!-- 자동 생성 파일 (mr) — tools/build_langs.py. 직접 고치지 말고 루트의 index.html 또는 i18n/mr.json을 고친 뒤 다시 빌드할 것. -->
+<html lang="mr" data-mk-root="../">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>मंत्रकी · MantraKey</title>
+    <meta name="description" content="फक्त एवढं पाठ करा, मग न बघता टाइप करा! तीन ओळींचा मंत्र पाठ करून पहिल्याच दिवसापासून मराठी टच-टायपिंग — मंत्रकी देवनागरी कीबोर्ड.">
+    <link rel="canonical" href="https://mantrakey.com/mr/">
+    <!-- 언어판 연결: 검색엔진이 사용자 언어에 맞는 판을 보여주게 함 (../lang.js의 MK_LANGS와 같은 목록) -->
+    <link rel="alternate" hreflang="hi" href="https://mantrakey.com/">
+    <link rel="alternate" hreflang="mai" href="https://mantrakey.com/mai/">
+    <link rel="alternate" hreflang="ne" href="https://mantrakey.com/ne/">
+    <link rel="alternate" hreflang="mr" href="https://mantrakey.com/mr/">
+    <link rel="alternate" hreflang="x-default" href="https://mantrakey.com/">
+    <!-- 링크 공유(메신저·SNS) 미리보기 -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://mantrakey.com/mr/">
+    <meta property="og:title" content="मंत्रकी · MantraKey">
+    <meta property="og:description" content="फक्त एवढं पाठ करा, मग न बघता टाइप करा!">
+    <meta property="og:image" content="https://mantrakey.com/images/hero.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="../images/logo.png" type="image/png">
+<style>
+    /* 태국어에 최적화된 Sarabun 폰트를 불러옵니다 */
+    @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap');
+    /* 히어로 타이틀(데바나가리)용 폰트 */
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700;900&display=swap');
+    
+    body { 
+        font-family: 'Sarabun', sans-serif; 
+        word-break: keep-all; 
+		line-break: loose;
+		overflow-x: hidden; /* 가로 스크롤 방지 */
+    }
+	span, p, h3 {
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+.hero-copy {
+    left: 29%;
+    top: 48%;
+    transform: translate(-50%, -50%);
+    text-align: left;
+    font-family: 'Noto Sans Devanagari', 'Sarabun', sans-serif;
+}
+/* 헤드라인: "이것만 외우면 안 보고 칠 수 있어요" — 히어로에서 가장 큰 글씨 */
+.hero-copy .hero-headline {
+    font-size: clamp(1.9rem, 4.2vw, 3.4rem);
+    font-weight: 900;
+    line-height: 1.25;
+    margin: 0;
+    color: #ffffff;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+}
+/* 만트라 세 줄 (히어로에서는 강조색 없이) */
+.hero-copy .hero-mantra {
+    margin: 0.9em 0 0;
+    font-size: clamp(1.15rem, 2.3vw, 1.8rem);
+    font-weight: 700;
+    line-height: 1.5;
+    color: #7dd3fc; /* 하늘색 — 흰 헤드라인과 구분, 로고의 파란 화살표 톤 */
+    /* 모바일 히어로는 노란 티셔츠 위에 겹쳐서, 글자가 묻히지 않게 그림자를 진하게 */
+    text-shadow: 0 0 6px rgba(0,0,0,0.85), 1px 1px 3px rgba(0,0,0,0.8);
+}
+.hero-copy .hero-mantra p { margin: 0; white-space: nowrap; }
+@media (max-width: 767px) {
+    .hero-copy {
+        left: 48%;
+        top: auto;
+        bottom: 26%;
+        transform: translateX(-50%);
+
+        width: 88%;
+    }
+    .hero-copy .hero-headline { font-size: clamp(1.6rem, 7vw, 2.2rem); }
+    .hero-copy .hero-mantra { font-size: clamp(1rem, 4.4vw, 1.25rem); margin-top: 0.6em; }
+}
+</style>
+</head>
+<body class="bg-gray-50 text-gray-900 leading-relaxed">
+
+<nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+        <a href="#"><img src="../images/logotype.png" alt="MantraKey Logo" class="h-9 md:h-12"></a>
+        
+        <div class="flex items-center gap-4 md:gap-8">
+        <div class="hidden md:flex items-center space-x-8 font-medium text-sm">
+            <a href="#" class="hover:text-blue-600 transition">परिचय</a>
+            <a href="#pc-version" class="hover:text-blue-600 transition">पीसी आवृत्ती</a>
+            <a href="#how-to" class="hover:text-blue-600 transition">वापरण्याची पद्धत</a>
+            <a href="#demo" class="bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition flex items-center justify-center leading-none">
+                आत्ताच वापरून पहा
+            </a>
+        </div>
+        <!-- 언어 선택 메뉴 (../lang.js가 채움, 모바일에서도 보임) -->
+        <div id="lang-picker"></div>
+        </div>
+    </div>
+</nav>
+
+<section class="w-full relative">
+    <picture>
+        <source media="(max-width: 767px)" srcset="../images/hero_mobile.png">
+        <img src="../images/hero.png" alt="MantraKey Hero" class="w-full object-cover">
+    </picture>
+    <div class="absolute leading-snug hero-copy">
+        <p class="hero-headline">फक्त एवढं पाठ करा,<br>मग न बघता टाइप करा!</p>
+        <div class="hero-mantra">
+            <p>दमलो लिहिताना, नको सतत चुका!</p>
+            <p>मंत्रकी हिट!</p>
+            <p>टाइपिंग वर्गाविना याने पटकन जमलं!</p>
+        </div>
+    </div>
+</section>
+
+    <section id="pc-version" class="py-20 bg-gray-900 text-white">
+        <div class="max-w-6xl mx-auto px-6 text-center">
+            <h2 class="text-3xl font-bold mb-6">मंत्र हाच कीबोर्ड लेआउट</h2>
+            <p class="text-gray-400 mb-10 max-w-2xl mx-auto">
+                				पहिल्याच दिवसापासून ब्लाइंड टायपिंगचा अनुभव घ्या.<br>
+            </p>
+            <img src="../images/mr/pc1day.png" alt="पीसी मंत्रकी" class="mx-auto w-full max-w-2xl h-auto mb-10 rounded-lg shadow-2xl">
+        </div>
+    </section>
+
+    <!-- ↓ 자음·모음 배치 원리 (PC·모바일 공통) -->
+    <section id="how-to" class="py-20 max-w-6xl mx-auto px-6 border-t border-gray-100">
+        <div class="flex flex-col md:flex-row items-center gap-12">
+            <div class="md:w-1/2">
+                <img src="../images/how2step.png" alt="व्यंजन टाइप करण्याची पद्धत" class="w-full rounded-xl border border-gray-100 shadow-sm">
+            </div>
+            <div class="md:w-1/2">
+                <h3 class="text-2xl font-bold mb-6 text-gray-800">व्यंजन टाइप करण्याची पद्धत: मूळ अक्षर दाबा आणि बदल बटणाने बदला</h3>
+                <ul class="space-y-4 text-gray-600">
+                    <li class="flex items-start">
+                        <span class="text-blue-500 mr-3 mt-1">✓</span>
+                        <span>सारख्या उच्चाराची व्यंजने एकाच बटणावर ठेवली आहेत, त्यामुळे ती सहज सापडतात.</span>
+
+					</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 bg-gray-50">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row-reverse items-center gap-12">
+                <div class="md:w-1/2">
+                    <img src="../images/mr/how2vowel.png" alt="स्वर आणि मात्रांची जागा" class="w-full rounded-xl border border-gray-100 shadow-sm">
+                </div>
+                <div class="md:w-1/2">
+				<h3 class="text-2xl font-bold mb-4 text-gray-800 break-words">
+					स्वर आणि मात्रा व्यंजनाला ज्या दिशेने जोडल्या जातात, त्यानुसार बटणांवर ठेवल्या आहेत.
+				</h3>
+
+				<ul class="space-y-4 text-gray-600">
+					<li class="flex items-start">
+						<span class="text-blue-500 mr-3 mt-1">✓</span>
+						<span class="break-words text-lg">वर लागणारे स्वर वरच्या ओळीत, खाली लागणारे खालच्या ओळीत, डावीकडचे डावीकडे आणि उजवीकडचे उजवीकडे ठेवले आहेत.</span>
+					</li>
+				</ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 모바일 섹션 도입부: 예전 intro에 있던 모바일 자판 이미지를 여기로 옮김 (문구 임시) -->
+    <section id="mobile-version" class="py-20 bg-white text-center px-6 border-t border-gray-100">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="text-3xl font-bold mb-6 text-gray-800">मोबाइलवरही मंत्रकी</h2>
+            <div class="mt-10">
+                <img src="../images/mr/mobile.png" alt="मोबाइल मंत्रकी" class="mx-auto w-full max-w-xl drop-shadow-2xl rounded-xl">
+            </div>
+        </div>
+    </section>
+
+    <section id="mode-switch" class="py-20 max-w-6xl mx-auto px-6 border-t border-gray-100">
+        <div class="flex flex-col md:flex-row items-center gap-12">
+            <div class="md:w-1/2">
+                <img src="../images/mr/help.png" alt="मोड स्वाइप पद्धत" class="w-full rounded-xl border border-gray-100 shadow-sm">
+            </div>
+            <div class="md:w-1/2">
+                <h3 class="text-2xl font-bold mb-6 text-gray-800">फक्त एक स्वाइप — मोड लगेच बदला!</h3>
+                <ul class="space-y-4 text-gray-600">
+                    <li class="flex items-start">
+                        <span class="text-blue-500 mr-3 mt-1">✓</span>
+                        <span>मधोमध वर स्वाइप केल्यास अ/A, उजवीकडे वर स्वाइप केल्यास नंबर/चिन्ह मोडमध्ये बदलते.</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+<section id="demo" class="py-24 text-center">
+    <h2 class="text-3xl font-bold mb-16">मंत्रकी स्वतः वापरून पहा</h2>
+    <div class="grid md:grid-cols-2 gap-10 max-w-4xl mx-auto px-6">
+
+        <!-- PC Card -->
+        <div class="p-10 rounded-3xl bg-white border border-gray-100 shadow-xl flex flex-col items-center relative overflow-hidden">
+            <h4 class="text-xl font-bold mb-6 text-gray-800">पीसी मंत्रकी</h4>
+            <div class="h-32 flex items-center mb-8">
+                <img src="../images/mr/pc.png" alt="PC demo" class="max-h-full w-auto object-contain grayscale hover:grayscale-0 transition duration-500">
+            </div>
+            <a href="try.html" class="inline-block w-full py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-blue-600 transition text-center">आत्ताच वापरून पहा</a>
+
+            <!-- 모바일에서 볼 때: PC 안내 오버레이 -->
+            <div id="pc-overlay"
+                 class="absolute inset-0 rounded-3xl flex-col items-center justify-center gap-4 px-6"
+                 style="display:none; background:rgba(255,255,255,0.96); backdrop-filter:blur(4px);">
+                <h4 class="text-xl font-bold text-gray-800">पीसी मंत्रकी</h4>
+                <span class="text-5xl">🖥️</span>
+                <p class="text-sm text-gray-500 text-center">या सुविधेसाठी पीसी कीबोर्ड आवश्यक आहे,<br>कृपया संगणकावरून उघडा.</p>
+            </div>
+        </div>
+
+        <!-- Mobile Card -->
+        <div class="p-10 rounded-3xl bg-white border border-gray-100 shadow-xl flex flex-col items-center relative overflow-hidden">
+            <h4 class="text-xl font-bold mb-6 text-gray-800">मोबाइल मंत्रकी</h4>
+            <div class="h-32 flex items-center mb-8">
+                <img src="../images/mr/mobile.png" alt="Mobile demo" class="max-h-full w-auto object-contain grayscale hover:grayscale-0 transition duration-500">
+            </div>
+            <a href="mobile_demo.html" class="inline-block w-full py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-blue-600 transition text-center">आत्ताच वापरून पहा</a>
+
+            <!-- PC에서 볼 때: QR코드 오버레이 -->
+            <div id="mobile-overlay"
+                 class="absolute inset-0 rounded-3xl flex-col items-center justify-center gap-4 px-6"
+                 style="display:none; background:rgba(255,255,255,0.96); backdrop-filter:blur(4px);">
+                <h4 class="text-xl font-bold text-gray-800">मोबाइल मंत्रकी</h4>
+                <div id="qr-container" class="bg-white p-3 rounded-2xl shadow-md border border-gray-100"></div>
+                <p class="text-sm text-gray-500 text-center">📱 वापरून पाहण्यासाठी फोनने<br>क्यूआर कोड स्कॅन करा</p>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+
+<script src="../lang.js"></script>
+
+<!-- QR 라이브러리 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(function() {
+    var isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth < 768;
+    var mobileOverlay = document.getElementById('mobile-overlay');
+    var pcOverlay = document.getElementById('pc-overlay');
+    var qrContainer = document.getElementById('qr-container');
+
+    if (!isMobile) {
+        mobileOverlay.style.display = 'flex';
+        new QRCode(qrContainer, {
+            text: 'https://mantrakey.com/mr/mobile_demo.html',
+            width: 160,
+            height: 160,
+            colorDark: '#111827',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.M
+        });
+    } else {
+        pcOverlay.style.display = 'flex';
+    }
+})();
+</script>
+
+
+    <footer class="py-12 border-t border-gray-100 text-center text-gray-400 text-sm">
+        <p>© 2026 MantraKey All rights reserved.</p>
+    </footer>
+
+</body>
+</html>
